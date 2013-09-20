@@ -2,7 +2,7 @@
   "name": "jsxhint",
   "version": "0.0.1",
   "description": "Wrapper for JSHint to allow hinting of JSX files",
-  "main": "index.js",
+  "main": "jsxhint.js",
   "scripts": {
     "test": "./node_modules/.bin/mocha"
   },
