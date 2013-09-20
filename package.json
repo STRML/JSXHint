@@ -1,0 +1,30 @@
+{
+  "name": "jsxhint",
+  "version": "0.0.1",
+  "description": "Wrapper for JSHint to allow hinting of JSX files",
+  "main": "index.js",
+  "scripts": {
+    "test": "./node_modules/.bin/mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "CondeNast/JSXHint"
+  },
+  "keywords": [
+    "jshint",
+    "jsx",
+    "react",
+    "lint",
+    "jslint",
+    "reactjs"
+  ],
+  "author": "Todd Kennedy",
+  "license": "MIT",
+  "dependencies": {
+    "runnel": "~0.5.1",
+    "npmlog": "0.0.4",
+    "glob": "~3.2.6",
+    "jshint": "~2.1.10",
+    "react-tools": "~0.4.1"
+  }
+}
