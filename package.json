@@ -3,13 +3,16 @@
   "version": "0.0.1",
   "description": "Wrapper for JSHint to allow hinting of JSX files",
   "main": "jsxhint.js",
+  "bin": "./cli.js",
   "scripts": {
-    "test": "./node_modules/.bin/mocha"
+    "test": "./node_modules/.bin/mocha",
+    "lint": "./node_modules/.bin/jshint"
   },
   "repository": {
     "type": "git",
     "url": "CondeNast/JSXHint"
   },
+  "prefer_global": true,
   "keywords": [
     "jshint",
     "jsx",
@@ -25,6 +28,7 @@
     "npmlog": "0.0.4",
     "glob": "~3.2.6",
     "jshint": "~2.1.10",
-    "react-tools": "~0.4.1"
+    "react-tools": "~0.4.1",
+    "argparse": "~0.1.15"
   }
 }
