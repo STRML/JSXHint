@@ -1,11 +1,17 @@
 #!/usr/bin/env node
+/**
+ * JSXHint CLI tool
+ *
+ * Copyright 2013 (c) Condé Nast
+ *
+ * Please see LICENSE for details
+ *
+ */
+
 'use strict';
 
 var jsxhint = require('./jsxhint');
-var version = require('./package').version;
-var name = require('./package').name;
-var description = require('./package').description;
-var log = require('npmlog');
+var pkgInfo = require('./package');
 var runnel = require('runnel');
 var ArgParse = require('argparse').ArgumentParser;
 
@@ -13,9 +19,9 @@ var globs = [];
 var args = {};
 
 var parser = new ArgParse({
-  version: version,
+  version: pkgInfo.version,
   addHelp: true,
-  description: description,
+  description: pkgInfo.description,
   debug: true
 
 });

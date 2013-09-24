@@ -1,14 +1,24 @@
+/**
+ * JSXHint CLI tool
+ *
+ * Copyright 2013 (c) Condé Nast
+ *
+ * Please see LICENSE for details
+ *
+ */
+
 'use strict';
 
 var fs = require('fs');
 var glob = require('glob');
-var log = require('npmlog');
 var path = require('path');
+
+var colors = require('colors');
 var jshint = require('jshint').JSHINT;
-var log = require('npmlog');
 var react = require('react-tools');
 var docblock = require('react-tools/vendor/fbtransform/lib/docblock');
 var runnel = require('runnel');
+
 var prjRoot = path.dirname(require.main.filename);
 
 
@@ -27,7 +37,14 @@ function makeIgnores(ignoreList, ignoreFile, cb){
 
   /**
    * Transform an array of strings into an array of regular
-   * expressions
+   * expressions. Clean pattern converts the ? and * from globs into
+   * regular expression compatible syntax and then makes sure that
+   * it's not as greedy as normal by specifiying start and end syntax.
+   *
+   * This does mean thought that if you're trying to ignore something like
+   * node_modules you'll need to have `*node_modules*` in your glob and NOT
+   * `node_modules`
+   *
    * @private
    * @param  {Array} ignores Array of strings or regular expressions
    * @return {Array}         Array of regular expressions
@@ -37,7 +54,9 @@ function makeIgnores(ignoreList, ignoreFile, cb){
       if(gi instanceof RegExp){
         return gi;
       } else {
-        return new RegExp(gi.replace('*',''), 'g');
+        var cleanPattern = gi.replace(/\?/, '.').replace(/\*/, '.*?');
+        cleanPattern = '^'+cleanPattern+'$';
+        return new RegExp(cleanPattern, 'g');
       }
     });
   };
@@ -103,16 +122,17 @@ function transformJSX(file, cb){
     if(err){
       cb(err);
     } else {
-      if(docblock.parseAsObject(docblock.extract(source))){
-        source = react.transform(source);
+      try {
+        if(docblock.parseAsObject(docblock.extract(source))){
+          source = react.transform(source);
+        }
+        cb(null, source);
+      } catch(e) {
+        cb(new Error(file+' contained an illegal character'.red));
       }
-      cb(null, source);
     }
   });
 }
-
-
-
 
 /**
  * Generate the ignores, the hint options, transform the files
@@ -152,7 +172,7 @@ var lintJSX = function (glb, ignoreList, ignoreFile, hintFile, cb){
     if(err){
       cb(err);
     } else {
-      getJSHintRc(function(err, jshintrc){
+      getJSHintRc(hintFile, function(err, jshintrc){
         var globals = {};
         if(jshintrc.globals){
           globals = jshintrc.globals;
@@ -228,7 +248,7 @@ var lintJSX = function (glb, ignoreList, ignoreFile, hintFile, cb){
         if(err){
           done(err);
         } else {
-          runLint(source, jshintrc, globals);
+          runLint(source, file, jshintrc, globals);
         }
       }
       transformJSX(file, processed);
@@ -261,13 +281,15 @@ var lintJSX = function (glb, ignoreList, ignoreFile, hintFile, cb){
    * @param  {Object} globals  JSHint globals
    * @return {Object}          Undefined
    */
-  function runLint(file, jshintrc, globals){
-    if(jshint(file, jshintrc, globals)){
+  function runLint(source, file, jshintrc, globals){
+    if(jshint(source, jshintrc, globals)){
       done();
     } else {
       jshint.errors.forEach(function(e){
         if(e){
-          log.error(e.evidence, '[%s] %s:%s,%s', e.code, e.reason, e.line, e.character);
+          console.log('['+e.code.bold.red+']',
+                      e.reason.cyan,
+                      file+':'+e.line+','+e.character);
         }
       });
       done(true);
@@ -275,7 +297,7 @@ var lintJSX = function (glb, ignoreList, ignoreFile, hintFile, cb){
   }
 
   makeIgnores(ignoreList, ignoreFile, ignoreHandler);
-}
+};
 
 /**
  * Generate an array of tasks for passing into `runnel`
@@ -286,14 +308,16 @@ var lintJSX = function (glb, ignoreList, ignoreFile, hintFile, cb){
  * @param  {String} [pRoot]    Specify the project root for finding files
  * @return {Array}             Array of bound functions to pass to `runnel`
  */
-var generateTasks = function(globList, ingoreList, ignoreFile, hintFile, pRoot){
+var generateTasks = function(globList, ignoreList, ignoreFile, hintFile, pRoot){
   if(typeof prjRoot !== 'undefined'){
     prjRoot = pRoot;
   }
 
   function done(err){
     if(err){
-      process.exit(1);
+      console.log(err.message.red);
+    } else {
+      console.log('All files passed linter'.magenta.bold);
     }
   }
 
@@ -302,7 +326,7 @@ var generateTasks = function(globList, ingoreList, ignoreFile, hintFile, pRoot){
   });
   tasks.push(done);
   return tasks;
-}
+};
 
 exports.generateTasks = generateTasks;
 exports.lintJSX = lintJSX;
