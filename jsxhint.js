@@ -123,9 +123,17 @@ function transformJSX(file, cb){
       cb(err);
     } else {
       try {
-        if(docblock.parseAsObject(docblock.extract(source))){
+        var hasDocblock = docblock.parseAsObject(docblock.extract(source)).jsx;
+        var hasExtension = /\.jsx$/.exec(file);
+
+        if (hasExtension && !hasDocblock) {
+          source = '/** @jsx React.DOM */' + source;
+        }
+
+        if (hasExtension || hasDocblock) {
           source = react.transform(source);
         }
+
         cb(null, source);
       } catch(e) {
         cb(new Error(file+' contained an illegal character'.red));
