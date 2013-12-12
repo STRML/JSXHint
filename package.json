@@ -5,8 +5,10 @@
   "main": "jsxhint.js",
   "bin": "./cli.js",
   "scripts": {
-    "test": "./node_modules/.bin/mocha",
-    "lint": "./node_modules/.bin/jshint"
+    "test": "tap test/test.js",
+    "lint": "jshint",
+    "postinstall": "if [[ -d .git ]]; then cp pre-commit.sh .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit; fi",
+    "precommit": "npm run lint && npm test"
   },
   "repository": {
     "type": "git",
@@ -30,5 +32,8 @@
     "react-tools": "~0.4.1",
     "argparse": "~0.1.15",
     "colors": "~0.6.2"
+  },
+  "devDependencies": {
+    "tap": "~0.4.6"
   }
 }

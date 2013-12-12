@@ -19,7 +19,8 @@ var react = require('react-tools');
 var docblock = require('react-tools/vendor/fbtransform/lib/docblock');
 var runnel = require('runnel');
 
-var prjRoot = path.dirname(require.main.filename);
+var currFile = require.main ? require.main.filename : undefined;
+var prjRoot = path.dirname(currFile || process.cwd());
 
 
 /**
@@ -32,8 +33,9 @@ var prjRoot = path.dirname(require.main.filename);
  * @param  {Function} cb         Callback to return ignore data
  * @return {Object}              Undefined
  */
-function makeIgnores(ignoreList, ignoreFile, cb){
+function makeIgnores(ignoreList, ignoreFile, prjRoot, cb){
   var _ignores = [];
+  var resolvedFn;
 
   /**
    * Transform an array of strings into an array of regular
@@ -65,22 +67,26 @@ function makeIgnores(ignoreList, ignoreFile, cb){
     _ignores = _ignores.concat(_makeRegex(ignoreList));
   }
 
-  var resolvedFn = path.resolve(prjRoot, ignoreFile);
+  if(typeof ignoreFile === 'string'){
+    resolvedFn = path.resolve(prjRoot, ignoreFile);
 
-  fs.exists(resolvedFn, function(exists){
-    if(exists){
-      fs.readFile(resolvedFn, 'utf8', function(err, ignoreData){
-        if(err){
-          cb(err);
-        } else {
-          _ignores = _ignores.concat(_makeRegex(ignoreData.trim().split(/\n/)));
-          cb(null, _ignores);
-        }
-      });
-    } else {
-      cb(null, _ignores);
-    }
-  });
+    fs.exists(resolvedFn, function(exists){
+      if(exists){
+        fs.readFile(resolvedFn, 'utf8', function(err, ignoreData){
+          if(err){
+            cb(err);
+          } else {
+            _ignores = _ignores.concat(_makeRegex(ignoreData.trim().split(/\n/)));
+            cb(null, _ignores);
+          }
+        });
+      } else {
+        cb(null, _ignores);
+      }
+    });
+  } else {
+    cb(null, _ignores);
+  }
 }
 
 /**
@@ -91,22 +97,26 @@ function makeIgnores(ignoreList, ignoreFile, cb){
  * @param  {Function} cb         The callback to call when the data is ready
  * @return {Object}              Undefined
  */
-function getJSHintRc(jshintfile, cb){
-  var resolvedFn = path.resolve(prjRoot, jshintfile);
-  fs.exists(resolvedFn, function(exist){
-    if(exist){
-      fs.readFile(resolvedFn, 'utf8', function(err, data){
-        if(err){
-          cb(err);
-        } else {
-          var rc = JSON.parse(data);
-          cb(null, rc);
-        }
-      });
-    } else {
-      cb(null, {});
-    }
-  });
+function getJSHintRc(jshintfile, prjRoot, cb){
+  if(typeof prjRoot === 'string' && typeof jshintfile === 'string'){
+    var resolvedFn = path.resolve(prjRoot, jshintfile);
+    fs.exists(resolvedFn, function(exist){
+      if(exist){
+        fs.readFile(resolvedFn, 'utf8', function(err, data){
+          if(err){
+            cb(err);
+          } else {
+            var rc = JSON.parse(data);
+            cb(null, rc);
+          }
+        });
+      } else {
+        cb(null, {});
+      }
+    });
+  } else {
+    cb(null, {});
+  }
 }
 
 /**
@@ -165,7 +175,7 @@ function transformJSX(file, cb){
  * @param  {Function} cb         `Runnel` provided callback
  * @return {Object}              Undefined
  */
-var lintJSX = function (glb, ignoreList, ignoreFile, hintFile, cb){
+var lintJSX = function (glb, ignoreList, ignoreFile, hintFile, prjRoot, cb){
   var errs = false;
 
   /**
@@ -180,7 +190,7 @@ var lintJSX = function (glb, ignoreList, ignoreFile, hintFile, cb){
     if(err){
       cb(err);
     } else {
-      getJSHintRc(hintFile, function(err, jshintrc){
+      getJSHintRc(hintFile, prjRoot, function(err, jshintrc){
         var globals = {};
         if(jshintrc.globals){
           globals = jshintrc.globals;
@@ -304,7 +314,7 @@ var lintJSX = function (glb, ignoreList, ignoreFile, hintFile, cb){
     }
   }
 
-  makeIgnores(ignoreList, ignoreFile, ignoreHandler);
+  makeIgnores(ignoreList, ignoreFile, prjRoot, ignoreHandler);
 };
 
 /**
@@ -313,13 +323,10 @@ var lintJSX = function (glb, ignoreList, ignoreFile, hintFile, cb){
  * @param  {Array} ingoreList  List of file patterns to ignore
  * @param  {String} ignoreFile File name to generate ignore patterns from
  * @param  {String} hintFile   File name to retrieve jshint options from
- * @param  {String} [pRoot]    Specify the project root for finding files
+ * @param  {String} [prjRoot]  Specify the project root for finding files
  * @return {Array}             Array of bound functions to pass to `runnel`
  */
-var generateTasks = function(globList, ignoreList, ignoreFile, hintFile, pRoot){
-  if(typeof prjRoot !== 'undefined'){
-    prjRoot = pRoot;
-  }
+var generateTasks = function(globList, ignoreList, ignoreFile, hintFile, prjRoot){
 
   function done(err){
     if(err){
@@ -330,11 +337,14 @@ var generateTasks = function(globList, ignoreList, ignoreFile, hintFile, pRoot){
   }
 
   var tasks = globList.map(function(g){
-    return lintJSX.bind(null, g, ignoreList, ignoreFile, hintFile);
+    return lintJSX.bind(null, g, ignoreList, ignoreFile, hintFile, prjRoot);
   });
   tasks.push(done);
   return tasks;
 };
 
+exports.getJSHintRc = getJSHintRc;
+exports.transformJSX = transformJSX;
+exports.makeIgnores = makeIgnores;
 exports.generateTasks = generateTasks;
 exports.lintJSX = lintJSX;
