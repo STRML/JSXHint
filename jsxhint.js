@@ -19,7 +19,8 @@ var react = require('react-tools');
 var docblock = require('react-tools/vendor/fbtransform/lib/docblock');
 var runnel = require('runnel');
 
-var prjRoot = path.dirname(require.main.filename);
+var currFile = require.main ? require.main.filename : undefined;
+var prjRoot = path.dirname(currFile || process.cwd());
 
 
 /**
@@ -34,6 +35,7 @@ var prjRoot = path.dirname(require.main.filename);
  */
 function makeIgnores(ignoreList, ignoreFile, prjRoot, cb){
   var _ignores = [];
+  var resolvedFn;
 
   /**
    * Transform an array of strings into an array of regular
@@ -65,22 +67,26 @@ function makeIgnores(ignoreList, ignoreFile, prjRoot, cb){
     _ignores = _ignores.concat(_makeRegex(ignoreList));
   }
 
-  var resolvedFn = path.resolve(prjRoot, ignoreFile);
+  if(typeof ignoreFile === 'string'){
+    resolvedFn = path.resolve(prjRoot, ignoreFile);
 
-  fs.exists(resolvedFn, function(exists){
-    if(exists){
-      fs.readFile(resolvedFn, 'utf8', function(err, ignoreData){
-        if(err){
-          cb(err);
-        } else {
-          _ignores = _ignores.concat(_makeRegex(ignoreData.trim().split(/\n/)));
-          cb(null, _ignores);
-        }
-      });
-    } else {
-      cb(null, _ignores);
-    }
-  });
+    fs.exists(resolvedFn, function(exists){
+      if(exists){
+        fs.readFile(resolvedFn, 'utf8', function(err, ignoreData){
+          if(err){
+            cb(err);
+          } else {
+            _ignores = _ignores.concat(_makeRegex(ignoreData.trim().split(/\n/)));
+            cb(null, _ignores);
+          }
+        });
+      } else {
+        cb(null, _ignores);
+      }
+    });
+  } else {
+    cb(null, _ignores);
+  }
 }
 
 /**
@@ -92,21 +98,25 @@ function makeIgnores(ignoreList, ignoreFile, prjRoot, cb){
  * @return {Object}              Undefined
  */
 function getJSHintRc(jshintfile, prjRoot, cb){
-  var resolvedFn = path.resolve(prjRoot, jshintfile);
-  fs.exists(resolvedFn, function(exist){
-    if(exist){
-      fs.readFile(resolvedFn, 'utf8', function(err, data){
-        if(err){
-          cb(err);
-        } else {
-          var rc = JSON.parse(data);
-          cb(null, rc);
-        }
-      });
-    } else {
-      cb(null, {});
-    }
-  });
+  if(typeof prjRoot === 'string' && typeof jshintfile === 'string'){
+    var resolvedFn = path.resolve(prjRoot, jshintfile);
+    fs.exists(resolvedFn, function(exist){
+      if(exist){
+        fs.readFile(resolvedFn, 'utf8', function(err, data){
+          if(err){
+            cb(err);
+          } else {
+            var rc = JSON.parse(data);
+            cb(null, rc);
+          }
+        });
+      } else {
+        cb(null, {});
+      }
+    });
+  } else {
+    cb(null, {});
+  }
 }
 
 /**
