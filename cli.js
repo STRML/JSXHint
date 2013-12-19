@@ -65,18 +65,30 @@ parser.addArgument(
   }
 );
 
+parser.addArgument(
+  ['--stdin'],
+  {
+    help: 'Indicate that input will come from stdin instead of from a file.',
+    dest: 'useStdin',
+    action: 'storeTrue'
+  }
+);
+
 // this oddly wraps the arguments in an extra array...
 parser.addArgument(
   ['files'],
   {
     help: 'List of files to hint',
-    nargs: '+',
+    nargs: '?',
     action: 'append'
   }
 );
 
 try {
   args = parser.parseArgs();
+  if (args.files.length === 1 && args.files[0] === null && !args.useStdin){
+    throw new Error("Either --stdin or a file must be specified!");
+  }
 } catch (e){
   console.log(e.message.replace(/cli\.js/, 'jsxhint'));
   process.exit(1);
@@ -84,5 +96,5 @@ try {
 
 globs = args.globs.concat(args.files[0]);
 var prjRoot = process.cwd();
-var tasks = jsxhint.generateTasks(globs, args.ignoreList, args.ignoreFile, args.jshintrc, prjRoot);
+var tasks = jsxhint.generateTasks(globs, args, prjRoot);
 runnel(tasks);

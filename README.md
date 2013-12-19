@@ -11,8 +11,8 @@ Accepts glob patterns. Respects your local .jshintrc file and .gitignore to filt
 ##Usage
 ```
 usage: jsxhint [-h] [-v] [-f IGNOREFILE] [-i IGNORELIST [IGNORELIST ...]]
-               [-r JSHINTRC] [-g GLOBS]
-               files [files ...]
+               [-r JSHINTRC] [-g GLOBS] [--stdin]
+               [files]
 
 Wrapper for JSHint to allow hinting of JSX files
 
@@ -29,6 +29,8 @@ Optional arguments:
   -r JSHINTRC, --jshintrc JSHINTRC
                         Use jshintrc. Default: .jshintrc
   -g GLOBS, --glob GLOBS
-                        Specify file pattern to hint. Globs MUST be wrapped
+                        Specify file pattern to hint. Globs MUST be wrapped 
                         in quotes!
+  --stdin               Indicate that input will come from stdin instead of 
+                        from a file.
 ```
