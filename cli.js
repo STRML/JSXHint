@@ -23,7 +23,6 @@ var parser = new ArgParse({
   addHelp: true,
   description: pkgInfo.description,
   debug: true
-
 });
 
 parser.addArgument(
@@ -73,6 +72,34 @@ parser.addArgument(
     action: 'storeTrue'
   }
 );
+
+parser.addArgument(
+  ['-c', '--colored'],
+  {
+    help: 'Screen output will be colored.',
+    dest: 'colored',
+    action: 'storeTrue'
+  }
+);
+
+parser.addArgument(
+  ['--verbose'],
+  {
+    help: 'Verbose output - includes error/warning codes, similar to `jshint --verbose`.',
+    dest: 'verbose',
+    action: 'storeTrue'
+  }
+);
+
+parser.addArgument(
+  ['--show-lines'],
+  {
+    help: 'Show line references next to errors.',
+    dest: 'showLineRefs',
+    action: 'storeTrue'
+  }
+);
+
 
 // this oddly wraps the arguments in an extra array...
 parser.addArgument(

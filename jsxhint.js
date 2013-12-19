@@ -185,10 +185,11 @@ function transformJSX(fileStream, fileName, cb){
  * @param  {String}   ignoreFile File ot generate ignore patterns from
  * @param  {String}   hintFile   File to generate hint options from
  * @param  {Boolean}  useStdin   If true, read file data from stdin.
+ * @param  {Object}   outputOptions   Options controlling output.
  * @param  {Function} cb         `Runnel` provided callback
  * @return {Object}              Undefined
  */
-var lintJSX = function (glb, ignoreList, ignoreFile, hintFile, useStdin, prjRoot, cb){
+var lintJSX = function (glb, ignoreList, ignoreFile, hintFile, useStdin, outputOptions, prjRoot, cb){
   var errs = false;
 
   /**
@@ -318,24 +319,49 @@ var lintJSX = function (glb, ignoreList, ignoreFile, hintFile, useStdin, prjRoot
    * the errors if any exist
    * @private
    * @async
-   * @param  {String} file     The contents of the file we want to hint
+   * @param  {String} source   The contents of the file we want to hint
+   * @param  {String} fileName The name of the file we want to hint
    * @param  {Object} jshintrc JSHint options
    * @param  {Object} globals  JSHint globals
    * @return {Object}          Undefined
    */
-  function runLint(source, file, jshintrc, globals){
+  function runLint(source, fileName, jshintrc, globals){
     if(jshint(source, jshintrc, globals)){
       done();
     } else {
       jshint.errors.forEach(function(e){
         if(e){
-          console.log('['+e.code.bold.red+']',
-                      e.reason.cyan,
-                      file+':'+e.line+','+e.character);
+          printError(e, fileName);
         }
       });
+      // Error summary
+      console.log('\n' + jshint.errors.length + " error" + (jshint.errors.length === 1 ? '' : 's'));
       done(true);
     }
+  }
+
+  /**
+   * Print a jshint error to the screen.
+   * Output is identical to jshint when not using --verbose and --colored.
+   * @private
+   * @param  {Object} e        JSHint error.
+   * @param  {String} fileName File name.
+   */
+  function printError(e, fileName) {
+    var reason = e.reason, code = '', lineRef = '', line = e.line, col = e.character;
+    if (outputOptions.verbose) {
+      code = ' (' + e.code + ')';
+    }
+    if (outputOptions.colored) {
+      line = e.line.toString().bold;
+      col = e.character.toString().bold;
+      reason = reason.cyan;
+      code = ' (' + e.code.red + ')';
+    }
+    if (outputOptions.showLineRefs){
+      lineRef = '\n\t' + e.evidence.trim() + '\n';
+    }
+    console.log(fileName + ': line ' + line + ', col ' + col + ', ' + reason + code + lineRef);
   }
 
   makeIgnores(ignoreList, ignoreFile, prjRoot, ignoreHandler);
@@ -357,6 +383,7 @@ var generateTasks = function(globList, args, prjRoot){
   var ignoreFile = args.ignoreFile;
   var hintFile = args.jshintrc;
   var useStdin = args.useStdin;
+  var outputOptions = {verbose: args.verbose, colored: args.colored};
 
   function done(err){
     if(err){
@@ -367,7 +394,7 @@ var generateTasks = function(globList, args, prjRoot){
   }
 
   var tasks = globList.map(function(g){
-    return lintJSX.bind(null, g, ignoreList, ignoreFile, hintFile, useStdin, prjRoot);
+    return lintJSX.bind(null, g, ignoreList, ignoreFile, hintFile, useStdin, outputOptions, prjRoot);
   });
   tasks.push(done);
   return tasks;

@@ -11,7 +11,7 @@ Accepts glob patterns. Respects your local .jshintrc file and .gitignore to filt
 ##Usage
 ```
 usage: jsxhint [-h] [-v] [-f IGNOREFILE] [-i IGNORELIST [IGNORELIST ...]]
-               [-r JSHINTRC] [-g GLOBS] [--stdin]
+               [-r JSHINTRC] [-g GLOBS] [--stdin] [-c] [--verbose] [--show-lines]
                [files]
 
 Wrapper for JSHint to allow hinting of JSX files
@@ -33,4 +33,8 @@ Optional arguments:
                         in quotes!
   --stdin               Indicate that input will come from stdin instead of 
                         from a file.
+  -c, --colored         Screen output will be colored.
+  --verbose             Verbose output - includes error/warning codes, 
+                        similar to `jshint --verbose`.
+  --show-lines          Show line references next to errors.
 ```
