@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 var React = require('react-tools/build/modules/React');
 
@@ -29,7 +29,7 @@ var statusForm = React.createClass({
               </div>
 
               <input class="btn btn-success" type="submit" value="Save status"/>
-            </form>
+            </form>;
   }
 });
 

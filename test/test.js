@@ -3,59 +3,62 @@
 var fs = require('fs');
 var test = require('tap').test;
 var jsxhint = require('../jsxhint');
+var child_process = require('child_process');
 
-test('Load and enumerate regexps from .gitignore', function(t){
-  t.plan(4);
-  var ignoreString = 'test;'
-  var ignoreData = fs.readFileSync('../.gitignore', 'utf-8').trim().split('\n');
-
-  jsxhint.makeIgnores([ignoreString], null, null, function(err, ignores){
-    t.equal(ignores.length, 1, 'More than one ignore');
-    var regex = new RegExp('^'+ignoreString+'$','g');
-    t.equal(ignores[0].toString(), regex.toString(), 'RegExp processed incorrectly');
-  });
-
-  jsxhint.makeIgnores(null, '.gitignore', '../', function(err, ignores){
-    t.equal(ignores.length, ignoreData.length, 'Should be '+ignoreData.length);
-  });
-
-  jsxhint.makeIgnores([ignoreString], '.gitignore', '../', function(err, ignores){
-    t.equal(ignores.length, ignoreData.length+1, 'Should have combined');
-  });
-});
-
-test('Load .jshintrc, if it exists', function(t){
-  t.plan(4);
-  var jshintRC = JSON.parse(fs.readFileSync('../.jshintrc', 'utf-8'));
-  jsxhint.getJSHintRc(null, null, function(err, jshintdata){
-    t.ifError(err);
-    t.deepEqual(jshintdata, {}, 'Should be an empty object');
-  });
-
-  jsxhint.getJSHintRc('.jshintrc', '../', function(err, jshintdata){
-    t.ifError(err);
-    t.deepEqual(jshintdata, jshintRC, 'Should match');
-  });
-});
 
 test('Convert JSX to JS', function(t){
   t.plan(4);
-  jsxhint.transformJSX('./test_article.js', function(err, data){
+  jsxhint.transformJSX('./fixtures/test_article.js', function(err, data){
     t.ifError(err);
-    var containsFormElement = data.match(/<form/);
     t.equal(data.match(/<form/), null, 'JS was not properly converted');
   });
 
-  jsxhint.transformJSX('./test_article.jsx', function(err, data){
+  jsxhint.transformJSX('./fixtures/test_article.jsx', function(err, data){
     t.ifError(err);
     t.equal(data.match(/<form/), null, 'JS was not properly converted');
   });
 });
 
-test('Generate tests', function(t){
-  var tasks = jsxhint.generateTasks(['./test.js'], [], '', '', process.cwd());
-  console.log(tasks);
-  t.equal(tasks.length, 2, 'Should be a single task');
-  t.equal(typeof tasks[0], 'function', 'First task should a function');
-  t.end();
+test('Test stream input into transformJSX', function(t){
+  t.plan(4);
+  var readStream = fs.createReadStream('./fixtures/test_article.js');
+  // Test with provided filename
+  jsxhint.transformJSX(readStream, 'fixtures/test_article.js', function(err, data){
+    t.ifError(err);
+    t.equal(data.match(/<form/), null, 'JS was not properly converted');
+  });
+  // Test without provided filename (assumes 'stdin')
+  jsxhint.transformJSX(readStream, function(err, data){
+    t.ifError(err);
+    t.equal(data.match(/<form/), null, 'JS was not properly converted');
+  });
+});
+
+test('Error output should match jshint', function(t){
+  t.plan(3);
+  var jshint_proc = child_process.fork('../node_modules/jshint/bin/jshint', ['fixtures/jshint_parity.js'], {silent: true});
+  var jsxhint_proc = child_process.fork('../cli', ['fixtures/jshint_parity.js'], {silent: true});
+
+  drain_stream(jshint_proc.stdout, function(err, jshintOut){
+    t.ifError(err);
+    drain_stream(jsxhint_proc.stdout, function(err, jsxhintOut){
+      t.ifError(err);
+      console.error(jshintOut + 'fuhh');
+      console.error(jsxhintOut);
+      t.equal(jshintOut, jsxhintOut, "JSHint output formatting should match JSXHint output.");
+    });
+  });
+
+  function drain_stream(stream, cb){
+    var buf = '';
+    stream.on('data', function(chunk){
+      buf += chunk;
+    });
+    stream.on('error', function(e){
+      cb(e);
+    });
+    stream.on('end', function(){
+      cb(null, buf);
+    });
+  }
 });
