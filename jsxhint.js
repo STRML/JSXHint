@@ -151,9 +151,11 @@ function transformJSX(fileStream, fileName, cb){
 
   // Allow passing strings into this method e.g. when using it as a lib
   if (typeof fileStream === "string"){
-    cb = fileName;
-    fileName = fileStream;
-    fileStream = fs.createReadStream(fileName, {encoding: "utf8"});
+    if (!cb){
+      cb = fileName || cb;
+      fileName = fileStream;
+    }
+    fileStream = fs.createReadStream(fileStream, {encoding: "utf8"});
   }
 
   var source = '', err;
@@ -252,9 +254,7 @@ var lintJSX = function (glb, ignoreList, ignoreFile, hintFile, useStdin, outputO
     glob(wc, function(err, files){
       var jsxFiles = files.filter(filterIgnores);
       jsxFiles.forEach(function(fileName){
-        processJSXFile(
-          fs.createReadStream(fileName, {encoding: 'utf8'}), jshintrc, globals
-        );
+        processJSXFile(fileName, fileName, jshintrc, globals);
       });
     });
 
@@ -361,7 +361,7 @@ var lintJSX = function (glb, ignoreList, ignoreFile, hintFile, useStdin, outputO
     if (outputOptions.showLineRefs){
       lineRef = '\n\t' + e.evidence.trim() + '\n';
     }
-    console.log(fileName + ': line ' + line + ', col ' + col + ', ' + reason + code + lineRef);
+    console.log(path.relative(prjRoot, fileName) + ': line ' + line + ', col ' + col + ', ' + reason + code + lineRef);
   }
 
   makeIgnores(ignoreList, ignoreFile, prjRoot, ignoreHandler);

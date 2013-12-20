@@ -113,8 +113,8 @@ parser.addArgument(
 
 try {
   args = parser.parseArgs();
-  if (args.files.length === 1 && args.files[0] === null && !args.useStdin){
-    throw new Error("Either --stdin or a file must be specified!");
+  if (args.files.length === 1 && args.files[0] === null && !args.useStdin && !args.globs.length){
+    throw new Error("A file, --glob, or --stdin must be specified! Run 'jsxhint -h' for details.");
   }
 } catch (e){
   console.log(e.message.replace(/cli\.js/, 'jsxhint'));
