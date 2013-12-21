@@ -16,7 +16,7 @@ var path = require('path');
 var colors = require('colors');
 var jshint = require('jshint').JSHINT;
 var react = require('react-tools');
-var docblock = require('react-tools/vendor/fbtransform/lib/docblock');
+var docblock = require('jstransform/src/docblock');
 var runnel = require('runnel');
 
 var currFile = require.main ? require.main.filename : undefined;
