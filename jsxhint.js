@@ -132,6 +132,7 @@ function transformJSX(fileStream, fileName, cb){
 
   function processFile(){
     try {
+      var source = originalSource;
       var hasDocblock = docblock.parseAsObject(docblock.extract(source)).jsx;
       var hasExtension = /\.jsx$/.exec(fileName) || fileName === "stdin";
 
@@ -143,7 +144,7 @@ function transformJSX(fileStream, fileName, cb){
         source = react.transform(source);
       }
 
-      cb(null, source);
+      cb(null, source, originalSource);
     } catch(e) {
       cb(new Error(fileName +' contained an illegal character'.red));
     }
@@ -158,9 +159,9 @@ function transformJSX(fileStream, fileName, cb){
     fileStream = fs.createReadStream(fileStream, {encoding: "utf8"});
   }
 
-  var source = '', err;
+  var originalSource = '', err;
   fileStream.on('data', function(chunk){
-    source += chunk;
+    originalSource += chunk;
   });
   fileStream.on('end', processFile);
   fileStream.on('error', cb);
@@ -288,11 +289,11 @@ var lintJSX = function (glb, ignoreList, ignoreFile, hintFile, useStdin, outputO
    * @return {Object}      Undefined
    */
   function processJSXFile(fileStream, fileName, jshintrc, globals){
-    function processed(err, source){
+    function processed(err, source, originalSource){
       if(err){
         done(err);
       } else {
-        runLint(source, fileName, jshintrc, globals);
+        runLint(source, fileName, jshintrc, globals, originalSource);
       }
     }
     transformJSX(fileStream, fileName, processed);
@@ -323,22 +324,62 @@ var lintJSX = function (glb, ignoreList, ignoreFile, hintFile, useStdin, outputO
    * @param  {String} fileName The name of the file we want to hint
    * @param  {Object} jshintrc JSHint options
    * @param  {Object} globals  JSHint globals
+   * @param  {String} originalSource JSX source before transformation.
    * @return {Object}          Undefined
    */
-  function runLint(source, fileName, jshintrc, globals){
+  function runLint(source, fileName, jshintrc, globals, originalSource){
     if(jshint(source, jshintrc, globals)){
       done();
     } else {
-      jshint.errors.forEach(function(e){
-        if(e){
-          printError(e, fileName);
-        }
+      var errors = filterErrors(jshint.errors, jshintrc, originalSource);
+      errors.forEach(function(e) {
+        printError(e, fileName);
       });
       // Error summary
-      console.log('\n' + jshint.errors.length + " error" + (jshint.errors.length === 1 ? '' : 's'));
+      if (errors.length){
+        console.log('\n' + errors.length + " error" + (errors.length === 1 ? '' : 's'));
+      }
       done(true);
     }
   }
+
+  /**
+   * At this time, the React.js JSX transformer will occasionally introduce an extra
+   * space at the end of lines that was not in the original source.
+   * It may be some time before this is fixed, so we filter out these errors
+   * if they are invalid.
+   * @private
+   * @param  {Array} errors          JSHint errors.
+   * @param  {Object} jshintrc       JSHintrc config.
+   * @param  {String} originalSource Original JSX source.
+   * @return {Array}                 JSHint errors with invalid errors removed.
+   */
+  function filterErrors(errors, jshintrc, originalSource){
+
+    /**
+     * Check error validity; if the offending line did not have a trailing space
+     * in the original source, mark invalid.
+     * @private
+     * @param  {Object} e                  JSHint error object.
+     * @return {Boolean}                   Whether or not the error was valid.
+     */
+    function isErrorValid(e) {
+      // Only check W102, trailing whitespace
+      if (e.code !== "W102") return true;
+      var line = originalSourceLines[e.line];
+      return line[line.length - 1] === " ";
+    }
+
+    // Skip if we're not checking this type of error.
+    if (!jshintrc.trailing) return errors;
+
+    var originalSourceLines = originalSource.split('\n');
+    return errors.filter(function(e){
+      return e && isErrorValid(e);
+    });
+  }
+
+
 
   /**
    * Print a jshint error to the screen.
