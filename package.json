@@ -26,15 +26,10 @@
   "author": "Todd Kennedy",
   "license": "MIT",
   "dependencies": {
-    "runnel": "~0.5.1",
-    "glob": "~3.2.6",
     "jshint": "~2.1.10",
     "react-tools": "~0.8.0",
     "jstransform": "~2.0.1",
-    "argparse": "~0.1.15",
-    "colors": "~0.6.2",
     "through": "~2.3.4",
-    "temp": "~0.6.0",
     "async": "~0.2.9"
   },
   "devDependencies": {
