@@ -28,6 +28,17 @@ function showHelp(){
 }
 
 /**
+ * Intercept -v, shows jsxhint and jshint versions.
+ */
+function showVersion(){
+  var jshint_proc = fork('./node_modules/jshint/bin/jshint', ['-v'], {silent: true});
+  var ts = through(function write(chunk){
+    this.queue("JSXHint v" + require('./package.json').version + " (" +
+      chunk.toString().replace("\n", "") + ")\n");
+  });
+  jshint_proc.stderr.pipe(ts).pipe(process.stderr);}
+
+/**
  * Proxy run function. Reaches out to jsxhint to transform
  * incoming stream or read files & transform.
  * @param  {Object}   opts Opts as created by JSHint.
@@ -74,6 +85,8 @@ function unlinkTemp(files){
 try {
   if (process.argv.indexOf('-h') !== -1 || process.argv.indexOf('--help') !== -1){
     showHelp();
+  } else if (process.argv.indexOf('-v') !== -1 || process.argv.indexOf('--version') !== -1){
+    showVersion();
   } else {
     jshintcli.originalRun = jshintcli.run;
     jshintcli.run = function(opts, cb){
