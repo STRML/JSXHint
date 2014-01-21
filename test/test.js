@@ -62,3 +62,26 @@ test('Error output should match jshint', function(t){
     });
   }
 });
+
+test('JSX transpiler error should look like JSHint output', function(t){
+  t.plan(2);
+  var jsxhint_proc = child_process.fork('../cli', ['fixtures/test_malformed.jsx'], {silent: true});
+
+  drain_stream(jsxhint_proc.stdout, function(err, jsxhintOut){
+    t.ifError(err);
+    t.equal(jsxhintOut, 'fixtures/test_malformed.jsx: line 7, col 16, Unexpected token ;\n\n1 error\n', 'JSXHint output should display the transplier error through the JSHint reporter.');
+  });
+
+  function drain_stream(stream, cb){
+    var buf = '';
+    stream.on('data', function(chunk){
+      buf += chunk;
+    });
+    stream.on('error', function(e){
+      cb(e);
+    });
+    stream.on('end', function(){
+      cb(null, buf);
+    });
+  }
+});

@@ -64,9 +64,11 @@ function run(opts, cb){
 function interceptReporter(reporter, filesMap){
   if(!reporter) reporter = require('jshint/src/reporters/default').reporter;
   return function(results, data, opts){
-    results.forEach(function(result){
-      result.file = filesMap[result.file];
-    });
+    if (filesMap) {
+      results.forEach(function(result){
+        result.file = filesMap[result.file];
+      });
+    }
     return reporter(results, data, opts);
   };
 }
@@ -94,11 +96,26 @@ try {
       // where keys are the original file name and values are the temporary file
       // name where the transformed source is written.
       run(opts, function(err, files){
-        opts.args = Object.keys(files);
         opts.reporter = interceptReporter(opts.reporter, files);
+
         // always false, stdin is never going to be usable as we may have read from it for the
         // transform.
         opts.useStdin = false;
+
+        if (err) {
+          opts.reporter([{
+            file: err.fileName,
+            error: {
+              line: err.lineNumber,
+              character: err.column,
+              reason: err.description,
+              code: 'E041'
+            }
+          }], {}, opts);
+          return process.exit(1);
+        }
+
+        opts.args = Object.keys(files);
 
         // Weird sync/async function, jshint oddity
         var done = function(passed){

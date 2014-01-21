@@ -50,7 +50,8 @@ function transformJSX(fileStream, fileName, cb){
 
       cb(null, source);
     } catch(e) {
-      cb(new Error(fileName +' contained an illegal character'.red));
+      e.fileName = fileName;
+      cb(e);
     }
   }
 
