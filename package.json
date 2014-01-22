@@ -24,7 +24,7 @@
     "reactjs"
   ],
   "author": "Todd Kennedy",
-  "contributors": ["Samuel Reed"],
+  "contributors": ["Samuel Reed <sam@tixelated.com>", "Casey Foster <c@sey.me>"],
   "license": "MIT",
   "dependencies": {
     "jshint": "~2.3.0",

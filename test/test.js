@@ -5,6 +5,20 @@ var test = require('tap').test;
 var jsxhint = require('../jsxhint');
 var child_process = require('child_process');
 
+// Util
+function drain_stream(stream, cb){
+  var buf = '';
+  stream.on('data', function(chunk){
+    buf += chunk;
+  });
+  stream.on('error', function(e){
+    cb(e);
+  });
+  stream.on('end', function(){
+    cb(null, buf);
+  });
+}
+
 
 test('Convert JSX to JS', function(t){
   t.plan(4);
@@ -48,19 +62,19 @@ test('Error output should match jshint', function(t){
       t.equal(jshintOut, jsxhintOut, "JSHint output formatting should match JSXHint output.");
     });
   });
+});
 
-  function drain_stream(stream, cb){
-    var buf = '';
-    stream.on('data', function(chunk){
-      buf += chunk;
-    });
-    stream.on('error', function(e){
-      cb(e);
-    });
-    stream.on('end', function(){
-      cb(null, buf);
-    });
-  }
+// https://github.com/STRML/JSXHint/pull/1
+// Thanks @caseywebdev
+test('JSX transpiler error should look like JSHint output, instead of crashing', function(t){
+  t.plan(2);
+  var jsxhint_proc = child_process.fork('../cli', ['fixtures/test_malformed.jsx'], {silent: true});
+
+  drain_stream(jsxhint_proc.stdout, function(err, jsxhintOut){
+    t.ifError(err);
+    t.equal(jsxhintOut, 'fixtures/test_malformed.jsx: line 7, col 16, Unexpected token ;\n\n1 error\n',
+      'JSXHint output should display the transplier error through the JSHint reporter.');
+  });
 });
 
 test('JSX transpiler error should look like JSHint output', function(t){
@@ -71,17 +85,4 @@ test('JSX transpiler error should look like JSHint output', function(t){
     t.ifError(err);
     t.equal(jsxhintOut, 'fixtures/test_malformed.jsx: line 7, col 16, Unexpected token ;\n\n1 error\n', 'JSXHint output should display the transplier error through the JSHint reporter.');
   });
-
-  function drain_stream(stream, cb){
-    var buf = '';
-    stream.on('data', function(chunk){
-      buf += chunk;
-    });
-    stream.on('error', function(e){
-      cb(e);
-    });
-    stream.on('end', function(){
-      cb(null, buf);
-    });
-  }
 });
