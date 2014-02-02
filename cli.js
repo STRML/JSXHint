@@ -20,7 +20,7 @@ var fs = require('fs');
  * Intercept -h to show jshint help.
  */
 function showHelp(){
-  var jshint_proc = fork('./node_modules/jshint/bin/jshint', ['-h'], {silent: true});
+  var jshint_proc = fork(__dirname + '/node_modules/jshint/bin/jshint', ['-h'], {silent: true});
   var ts = through(function write(chunk){
     this.queue(chunk.toString().replace(/jshint/g, 'jsxhint'));
   });
@@ -31,7 +31,7 @@ function showHelp(){
  * Intercept -v, shows jsxhint and jshint versions.
  */
 function showVersion(){
-  var jshint_proc = fork('./node_modules/jshint/bin/jshint', ['-v'], {silent: true});
+  var jshint_proc = fork(__dirname + '/node_modules/jshint/bin/jshint', ['-v'], {silent: true});
   var ts = through(function write(chunk){
     this.queue("JSXHint v" + require('./package.json').version + " (" +
       chunk.toString().replace("\n", "") + ")\n");
