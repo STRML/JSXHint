@@ -31,7 +31,8 @@
     "react-tools": "~0.8.0",
     "jstransform": "~2.0.1",
     "through": "~2.3.4",
-    "async": "~0.2.9"
+    "async": "~0.2.9",
+    "mkdirp": "~0.3.5"
   },
   "devDependencies": {
     "tap": "~0.4.6"

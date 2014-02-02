@@ -20,11 +20,12 @@ var through = require('through');
 var docblock = require('jstransform/src/docblock');
 var fork = require('child_process').fork;
 var async = require('async');
+var path = require('path');
+var mkdirp = require('mkdirp');
 
 var currFile = require.main ? require.main.filename : undefined;
 var prjRoot = path.dirname(currFile || process.cwd());
-
-var TEMP_SUFFIX = exports.TEMP_SUFFIX = ".__jsx_transform__.js";
+var tmpdir = require('os').tmpdir();
 
 /**
  * Transform a JSX file into a JS file for linting.
@@ -76,6 +77,25 @@ function transformJSX(fileStream, fileName, cb){
 }
 
 /**
+ * Find a config file, searching up from dir, and copy it to the tmpdir. The
+ * JSHint CLI uses these to determine settings.
+ * @param  {String} dir Path
+ */
+function copyConfig(dir, file, cb){
+  var check = path.resolve(dir, file);
+  if (fs.existsSync(check)) {
+    var rs = fs.createReadStream(check);
+    var ws = fs.createWriteStream(path.join(tmpdir, check));
+    return rs.pipe(ws.on('close', cb));
+  }
+
+  // Return null at the root. This is the case when dir and its parent are the
+  // same.
+  var parent = path.resolve(dir, '..');
+  return dir === parent ? cb() : copyConfig(parent, file, cb);
+}
+
+/**
  * Given a filename and contents, write to disk.
  * @private
  * @param  {String}   fileName File name.
@@ -83,9 +103,15 @@ function transformJSX(fileStream, fileName, cb){
  * @param  {Function} cb       Callback.
  */
 function createTempFile(fileName, contents, cb){
-  var ws = fs.createWriteStream(fileName + TEMP_SUFFIX);
-  ws.end(contents, function(){
-    cb(null, fileName + TEMP_SUFFIX);
+  fileName = path.resolve(fileName);
+  var file = path.join(tmpdir, fileName);
+  mkdirp(path.dirname(file), function(){
+    var dir = path.dirname(fileName);
+    async.parallel([
+      function(cb){ fs.createWriteStream(file).end(contents, cb); },
+      async.apply(copyConfig, dir, '.jshintrc'),
+      async.apply(copyConfig, dir, 'package.json')
+    ], function(){ cb(null, file); });
   });
 }
 
@@ -107,7 +133,7 @@ function createTempFiles(fileNames, fileContents, cb){
  * Transform a list of files from jsx. Calls back with a map relating
  * the new files (temp files) to the old file names, e.g.
  * {tempFile: originalFileName}
- * 
+ *
  * @param  {Array}   files  File paths to transform.
  * @param  {Function} cb    Callback.
  */
