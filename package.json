@@ -5,14 +5,15 @@
   "main": "jsxhint.js",
   "bin": "./cli.js",
   "scripts": {
-    "test": "tap test/test.js",
-    "lint": "jshint",
-    "postinstall": "if [[ -d .git ]]; then cp pre-commit.sh .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit; fi",
-    "precommit": "npm run lint && npm test"
+    "test": "node ./node_modules/tap/bin/tap test/test.js",
+    "lint": "jshint"
   },
   "repository": {
     "type": "git",
-    "url": "CondeNast/JSXHint"
+    "url": "STRML/JSXHint"
+  },
+  "directories": {
+    "test": "test"
   },
   "prefer_global": true,
   "keywords": [
@@ -24,7 +25,9 @@
     "reactjs"
   ],
   "author": "Samuel Reed",
-  "contributors": ["Casey Foster <c@sey.me>"],
+  "contributors": [
+    "Casey Foster <c@sey.me>"
+  ],
   "license": "MIT",
   "dependencies": {
     "jshint": "~2.3.0",
@@ -35,6 +38,7 @@
     "mkdirp": "~0.3.5"
   },
   "devDependencies": {
-    "tap": "~0.4.6"
+    "tap": "~0.4.6",
+    "precommit-hook": "~0.3.10"
   }
 }
