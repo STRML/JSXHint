@@ -23,8 +23,8 @@
     "jslint",
     "reactjs"
   ],
-  "author": "Todd Kennedy",
-  "contributors": ["Samuel Reed <sam@tixelated.com>", "Casey Foster <c@sey.me>"],
+  "author": "Samuel Reed",
+  "contributors": ["Casey Foster <c@sey.me>"],
   "license": "MIT",
   "dependencies": {
     "jshint": "~2.3.0",
