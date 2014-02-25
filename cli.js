@@ -121,7 +121,7 @@ try {
         var done = function(passed){
           if (passed == null) return;
           unlinkTemp(files);
-          cb();
+          cb(passed);
         };
         done(jshintcli.originalRun(opts, done));
       });
