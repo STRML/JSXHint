@@ -1,4 +1,4 @@
-[![build status](https://secure.travis-ci.org/CondeNast/JSXHint.png)](http://travis-ci.org/CondeNast/JSXHint)
+[![build status](https://secure.travis-ci.org/STRML/JSXHint.png)](http://travis-ci.org/STRML/JSXHint)
 
 #JSXHint
 A wrapper around JSHint to allow linting of files containing JSX syntax.
