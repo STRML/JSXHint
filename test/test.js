@@ -57,8 +57,6 @@ test('Error output should match jshint', function(t){
     t.ifError(err);
     drain_stream(jsxhint_proc.stdout, function(err, jsxhintOut){
       t.ifError(err);
-      console.error(jshintOut + 'fuhh');
-      console.error(jsxhintOut);
       t.equal(jshintOut, jsxhintOut, "JSHint output formatting should match JSXHint output.");
     });
   });
