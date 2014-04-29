@@ -4,6 +4,7 @@
   "description": "Wrapper for JSHint to allow hinting of JSX files",
   "main": "jsxhint.js",
   "bin": "./cli.js",
+  "engine": "node >= 0.10",
   "scripts": {
     "test": "node ./node_modules/tap/bin/tap test/test.js",
     "lint": "jshint"
