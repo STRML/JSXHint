@@ -46,7 +46,7 @@ function transformJSX(fileStream, fileName, cb){
       }
 
       if (hasExtension || hasDocblock) {
-        source = react.transform(source);
+        source = react.transform(source, {harmony: true});
       }
 
       cb(null, source);
