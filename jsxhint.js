@@ -85,7 +85,7 @@ function copyConfig(dir, file, cb){
   var check = path.resolve(dir, file);
   if (fs.existsSync(check)) {
     var rs = fs.createReadStream(check);
-    var ws = fs.createWriteStream(path.join(tmpdir, check));
+    var ws = fs.createWriteStream(path.join(tmpdir, check.replace(/^([a-zA-Z]):/, '$1'))); // replace is needed on Windows because path begins with Driveletter:/
     return rs.pipe(ws.on('close', cb));
   }
 
@@ -104,8 +104,9 @@ function copyConfig(dir, file, cb){
  */
 function createTempFile(fileName, contents, cb){
   fileName = path.resolve(fileName);
-  var file = path.join(tmpdir, fileName);
-  mkdirp(path.dirname(file), function(){
+  var file = path.join(tmpdir, fileName.replace(/^([a-zA-Z]):/, '$1')); // replace is needed on Windows because path begins with Driveletter:/
+  mkdirp(path.dirname(file), function(err){
+    if (err) return cb(err);
     var dir = path.dirname(fileName);
     async.parallel([
       function(cb){ fs.createWriteStream(file).end(contents, cb); },
