@@ -35,11 +35,11 @@
     "react-tools": "~0.10.0",
     "jstransform": "~4.0.1",
     "through": "~2.3.4",
-    "async": "~0.7.0",
-    "mkdirp": "~0.4.0"
+    "async": "~0.8.0",
+    "mkdirp": "~0.5.0"
   },
   "devDependencies": {
     "tap": "~0.4.9",
-    "precommit-hook": "~0.4.1"
+    "precommit-hook": "~1.0.2"
   }
 }
