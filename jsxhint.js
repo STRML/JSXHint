@@ -42,7 +42,7 @@ function transformJSX(fileStream, fileName, cb){
       var hasExtension = /\.jsx$/.exec(fileName) || fileName === "stdin";
 
       if (hasExtension && !hasDocblock) {
-        source = '/** @jsx React.DOM */\n' + source;
+        source = '/** @jsx React.DOM */' + source;
       }
 
       if (hasExtension || hasDocblock) {
