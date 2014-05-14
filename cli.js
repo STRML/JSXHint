@@ -79,8 +79,7 @@ function interceptReporter(reporter, filesMap){
  * Unlink temporary files created by JSX processor.
  */
 function unlinkTemp(){
-  var tmpdir = path.join(require('os').tmpdir(), 'jsxhint');
-  rimraf.sync(tmpdir);
+  rimraf.sync(jsxhint.tmpdir);
 }
 
 

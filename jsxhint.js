@@ -25,7 +25,6 @@ var mkdirp = require('mkdirp');
 
 var currFile = require.main ? require.main.filename : undefined;
 var prjRoot = path.dirname(currFile || process.cwd());
-var tmpdir = path.join(require('os').tmpdir(), 'jsxhint');
 
 /**
  * Transform a JSX file into a JS file for linting.
@@ -97,7 +96,7 @@ function getCleanAbsolutePath(fileName) {
 function copyConfig(dir, file, cb){
   var check = path.resolve(dir, file);
   if (fs.existsSync(check)) {
-    var destination = path.join(tmpdir, getCleanAbsolutePath(check));
+    var destination = path.join(exports.tmpdir, getCleanAbsolutePath(check));
     var rs = fs.createReadStream(check);
     var ws = fs.createWriteStream(destination);
     ws.on('close', cb);
@@ -118,7 +117,7 @@ function copyConfig(dir, file, cb){
  */
 function createTempFile(fileName, contents, cb){
   fileName = getCleanAbsolutePath(fileName);
-  var file = path.join(tmpdir, fileName);
+  var file = path.join(exports.tmpdir, fileName);
   mkdirp(path.dirname(file), function(){
     var dir = path.dirname(fileName);
     // We need to write the file's contents to disk, but also grab
@@ -206,6 +205,7 @@ function run(files, cb){
   }
 }
 
+exports.tmpdir = path.join(require('os').tmpdir(), 'jsxhint', String(process.pid));
 exports.transformJSX = transformJSX;
 exports.transformFiles = transformFiles;
 exports.transformStream = transformStream;
