@@ -25,7 +25,7 @@ var mkdirp = require('mkdirp');
 
 var currFile = require.main ? require.main.filename : undefined;
 var prjRoot = path.dirname(currFile || process.cwd());
-var tmpdir = require('os').tmpdir();
+var tmpdir = path.join(require('os').tmpdir(), 'jsxhint');
 
 /**
  * Transform a JSX file into a JS file for linting.

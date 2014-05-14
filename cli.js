@@ -15,6 +15,8 @@ var jshintcli = require('jshint/src/cli');
 var fork = require('child_process').fork;
 var through = require('through');
 var fs = require('fs');
+var path = require('path');
+var rimraf = require('rimraf');
 
 /**
  * Intercept -h to show jshint help.
@@ -75,11 +77,10 @@ function interceptReporter(reporter, filesMap){
 
 /**
  * Unlink temporary files created by JSX processor.
- * @param  {Object} files FileMap object (keys = transformed file paths)
  */
-function unlinkTemp(files){
-  if (typeof files !== "object") return;
-  Object.keys(files).forEach(fs.unlinkSync);
+function unlinkTemp(){
+  var tmpdir = path.join(require('os').tmpdir(), 'jsxhint');
+  rimraf.sync(tmpdir);
 }
 
 
@@ -120,7 +121,7 @@ try {
         // Weird sync/async function, jshint oddity
         var done = function(passed){
           if (passed == null) return;
-          unlinkTemp(files);
+          unlinkTemp();
           cb(passed);
         };
         done(jshintcli.originalRun(opts, done));
