@@ -77,20 +77,34 @@ function transformJSX(fileStream, fileName, cb){
 }
 
 /**
+ * Given a fileName, get a multi-platform compatible file path that can be appended to an existing filepath.
+ * This is not necessary on *nix but is important on Windows because absolutePath + absolutePath
+ * leads to the concatenation of a drive letter (`c:/`) which is a broken path.
+ * @param  {String} fileName file name.
+ * @return {String}          Cleaned file name.
+ */
+function getCleanAbsolutePath(fileName) {
+  return path.relative('/', path.resolve(fileName));
+}
+
+/**
  * Find a config file, searching up from dir, and copy it to the tmpdir. The
  * JSHint CLI uses these to determine settings.
+ * We attempt to preserve the original folder structure inside the tmpdir
+ * so that we have no unexpected configuration file priority.
  * @param  {String} dir Path
  */
 function copyConfig(dir, file, cb){
   var check = path.resolve(dir, file);
   if (fs.existsSync(check)) {
+    var destination = path.join(tmpdir, getCleanAbsolutePath(check));
     var rs = fs.createReadStream(check);
-    var ws = fs.createWriteStream(path.join(tmpdir, check));
-    return rs.pipe(ws.on('close', cb));
+    var ws = fs.createWriteStream(destination);
+    ws.on('close', cb);
+    return rs.pipe(ws);
   }
 
-  // Return null at the root. This is the case when dir and its parent are the
-  // same.
+  // Return null at the root. This is the case when dir and its parent are the same.
   var parent = path.resolve(dir, '..');
   return dir === parent ? cb() : copyConfig(parent, file, cb);
 }
@@ -103,10 +117,13 @@ function copyConfig(dir, file, cb){
  * @param  {Function} cb       Callback.
  */
 function createTempFile(fileName, contents, cb){
-  fileName = path.resolve(fileName);
+  fileName = getCleanAbsolutePath(fileName);
   var file = path.join(tmpdir, fileName);
   mkdirp(path.dirname(file), function(){
     var dir = path.dirname(fileName);
+    // We need to write the file's contents to disk, but also grab
+    // its associated .jshintrc and package.json so that jshint can lint it
+    // with the proper settings.
     async.parallel([
       function(cb){ fs.createWriteStream(file).end(contents, cb); },
       async.apply(copyConfig, dir, '.jshintrc'),
@@ -155,6 +172,7 @@ function transformFiles(files, cb){
 /**
  * Given a stream (stdin), transform and save to a temporary file so it can be piped
  * into JSHint.
+ * JSHint in stream mode attempts to read from process.stdin.
  * Since we can't reload process.stdin with the new transformed data (without forking),
  * we instead just write to a temp file and load it into JSHint.
  *
@@ -164,7 +182,7 @@ function transformFiles(files, cb){
 function transformStream(fileStream, cb){
   transformJSX(fileStream, function(err, contents){
     if(err) return cb(err);
-    createTempFile(process.cwd() + '/stdin', contents, function(noErr, tempFileName){
+    createTempFile(path.join(process.cwd(), 'stdin'), contents, function(noErr, tempFileName){
       var out = {};
       out[tempFileName] = 'stdin';
       cb(null, out);
@@ -182,10 +200,7 @@ function run(files, cb){
   if (Array.isArray(files)){
     transformFiles(files, cb);
   } else if (files instanceof require('stream').Readable){
-    transformStream(files, function(err, fileContents){
-      if (err) throw err;
-      cb(null, fileContents);
-    });
+    transformStream(files, cb);
   } else {
     throw new Error("Invalid input.");
   }
