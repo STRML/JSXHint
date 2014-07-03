@@ -22,9 +22,12 @@ var fork = require('child_process').fork;
 var async = require('async');
 var path = require('path');
 var mkdirp = require('mkdirp');
+var debug = require('debug')('jsxhint');
 
 var currFile = require.main ? require.main.filename : undefined;
 var prjRoot = path.dirname(currFile || process.cwd());
+// Check map for copied support files (package.json, .jshintrc) for a speedup.
+var checkedSupportFiles = {};
 
 /**
  * Transform a JSX file into a JS file for linting.
@@ -83,7 +86,7 @@ function transformJSX(fileStream, fileName, cb){
  * @return {String}          Cleaned file name.
  */
 function getCleanAbsolutePath(fileName) {
-  return path.relative('/', path.resolve(fileName));
+  return '/' + path.relative('/', path.resolve(fileName));
 }
 
 /**
@@ -94,12 +97,17 @@ function getCleanAbsolutePath(fileName) {
  * @param  {String} dir Path
  */
 function copyConfig(dir, file, cb){
-  var check = path.resolve(dir, file);
-  if (fs.existsSync(check)) {
-    var destination = path.join(exports.tmpdir, getCleanAbsolutePath(check));
-    var rs = fs.createReadStream(check);
+  var filePath = path.resolve(dir, file);
+  if (checkedSupportFiles[filePath]) return cb();
+  checkedSupportFiles[filePath] = true;
+
+  if (fs.existsSync(filePath)) {
+    var destination = path.join(exports.tmpdir, getCleanAbsolutePath(filePath));
+    var rs = fs.createReadStream(filePath);
     var ws = fs.createWriteStream(destination);
+    debug("Copying support file from %s to temp directory.", filePath);
     ws.on('close', cb);
+    // Indicate that this is copied already to prevent unnecessary file operations.
     return rs.pipe(ws);
   }
 
@@ -156,8 +164,10 @@ function createTempFiles(fileNames, fileContents, cb){
 function transformFiles(files, cb){
   async.map(files, transformJSX, function(err, fileContents){
     if(err) return cb(err);
+    debug("Successfully transformed %d files to JSX.", files.length);
     createTempFiles(files, fileContents, function(err, tempFileNames){
       if(err) return cb(err);
+      debug("Moved %d files to temp directory at %s.", files.length, exports.tmpdir);
       // Create map of temp file names to original file names
       var fileNameMap = {};
       files.forEach(function(fileName, index){

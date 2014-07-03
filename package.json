@@ -38,7 +38,8 @@
     "async": "~0.8.0",
     "mkdirp": "~0.5.0",
     "rimraf": "~2.2.8",
-    "graceful-fs": "~3.0.2"
+    "graceful-fs": "~3.0.2",
+    "debug": "~1.0.2"
   },
   "devDependencies": {
     "tap": "~0.4.9",
