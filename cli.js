@@ -47,6 +47,7 @@ function showVersion(){
  * @param  {Function} cb   Callback.
  */
 function run(opts, cb){
+  opts.extensions = opts.extensions ? opts.extensions + ',.jsx' : '.jsx';
   var files = jshintcli.gather(opts);
 
   if (opts.useStdin) {
