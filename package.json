@@ -35,7 +35,7 @@
     "react-tools": "~0.11.0",
     "jstransform": "~6.0.1",
     "through": "~2.3.4",
-    "async": "~0.8.0",
+    "async": "~0.9.0",
     "mkdirp": "~0.5.0",
     "rimraf": "~2.2.8",
     "graceful-fs": "~3.0.2",
