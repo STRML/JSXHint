@@ -17,6 +17,15 @@ var through = require('through');
 var fs = require('fs');
 var path = require('path');
 var rimraf = require('rimraf');
+var extend = require('extend');
+
+// The jshint call will throw an error if it encounters an option that it does
+// not recognize. Therefore, we need to filter out jsxhint options before
+// calling jshint. Because jsxhint is run in part of a callback of jshint after
+// this check, we need to store jsxhint options someplace globally so we can
+// access them inside the callback.
+var acceptedJSXHintOptions = ['--force-transform'];
+var jsxhintOptions = {};
 
 /**
  * Intercept -h to show jshint help.
@@ -25,6 +34,9 @@ function showHelp(){
   var jshint_proc = fork(__dirname + '/node_modules/jshint/bin/jshint', ['-h'], {silent: true});
   var ts = through(function write(chunk){
     this.queue(chunk.toString().replace(/jshint/g, 'jsxhint'));
+  }, function end() {
+    // This feels like a hack. There might be a better way to do this.
+    this.queue('      --force-transform  Force JSX to JS transformation');
   });
   jshint_proc.stderr.pipe(ts).pipe(process.stderr);
 }
@@ -51,9 +63,9 @@ function run(opts, cb){
   var files = jshintcli.gather(opts);
 
   if (opts.useStdin) {
-    jsxhint.transformStream(process.stdin, cb);
+    jsxhint.transformStream(process.stdin, jsxhintOptions, cb);
   } else {
-    jsxhint.transformFiles(files, cb);
+    jsxhint.transformFiles(files, jsxhintOptions, cb);
   }
 }
 
@@ -131,10 +143,25 @@ try {
         done(jshintcli.originalRun(opts, done));
       });
     };
-    jshintcli.interpret(process.argv);
+
+    var argv = process.argv.filter(function(value) {
+      if (acceptedJSXHintOptions.indexOf(value) > -1) {
+        // Store the jsxhint specific option globally so we can access it when
+        // we run the transformation.
+        jsxhintOptions[value] = true;
+
+        // Need to filter out jsxhint specific options so jshint doesn't throw
+        // an unknown option error.
+        return false;
+      }
+
+      return true;
+    });
+
+    jshintcli.interpret(argv);
   }
 } catch (e){
   console.log(e.message.replace(/cli\.js/, 'jsxhint'));
   unlinkTemp();
   process.exit(1);
-} 
+}

@@ -31,15 +31,16 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "jshint": "~2.5.1",
-    "react-tools": "~0.11.0",
-    "jstransform": "~6.0.1",
-    "through": "~2.3.4",
     "async": "~0.9.0",
-    "mkdirp": "~0.5.0",
-    "rimraf": "~2.2.8",
+    "debug": "~1.0.2",
+    "extend": "^2.0.0",
     "graceful-fs": "~3.0.2",
-    "debug": "~1.0.2"
+    "jshint": "~2.5.1",
+    "jstransform": "~6.0.1",
+    "mkdirp": "~0.5.0",
+    "react-tools": "~0.11.0",
+    "rimraf": "~2.2.8",
+    "through": "~2.3.4"
   },
   "devDependencies": {
     "tap": "~0.4.9",

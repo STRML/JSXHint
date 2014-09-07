@@ -22,12 +22,22 @@ function drain_stream(stream, cb){
 
 test('Convert JSX to JS', function(t){
   t.plan(4);
-  jsxhint.transformJSX('./fixtures/test_article.js', function(err, data){
+  jsxhint.transformJSX('./fixtures/test_article_without_pragma.js', {}, function(err, data){
+    t.ifError(err);
+    t.equal(data.match(/React.DOM/), null, 'JS was converted but should not be');
+  });
+
+  jsxhint.transformJSX('./fixtures/test_article_without_pragma.js', { '--force-transform': true }, function(err, data){
     t.ifError(err);
     t.equal(data.match(/<form/), null, 'JS was not properly converted');
   });
 
-  jsxhint.transformJSX('./fixtures/test_article.jsx', function(err, data){
+  jsxhint.transformJSX('./fixtures/test_article.js', {}, function(err, data){
+    t.ifError(err);
+    t.equal(data.match(/<form/), null, 'JS was not properly converted');
+  });
+
+  jsxhint.transformJSX('./fixtures/test_article.jsx', {}, function(err, data){
     t.ifError(err);
     t.equal(data.match(/<form/), null, 'JS was not properly converted');
   });
@@ -37,12 +47,12 @@ test('Test stream input into transformJSX', function(t){
   t.plan(4);
   var readStream = fs.createReadStream('./fixtures/test_article.js');
   // Test with provided filename
-  jsxhint.transformJSX(readStream, 'fixtures/test_article.js', function(err, data){
+  jsxhint.transformJSX(readStream, 'fixtures/test_article.js', {}, function(err, data){
     t.ifError(err);
     t.equal(data.match(/<form/), null, 'JS was not properly converted');
   });
   // Test without provided filename (assumes 'stdin')
-  jsxhint.transformJSX(readStream, function(err, data){
+  jsxhint.transformJSX(readStream, {}, function(err, data){
     t.ifError(err);
     t.equal(data.match(/<form/), null, 'JS was not properly converted');
   });
