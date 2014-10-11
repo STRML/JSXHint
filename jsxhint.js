@@ -34,20 +34,21 @@ var checkedSupportFiles = {};
  * @async
  * @param  {String}   fileStream Readable stream containing file contents.
  * @param  {String}   fileName   Name of the file; "stdin" if reading from stdio.
- * @param  {Function} cb   The callback to call when it's ready.
+ * @param  {Object}   opts       Options.
+ * @param  {Function} cb         The callback to call when it's ready.
  */
-function transformJSX(fileStream, fileName, cb){
+function transformJSX(fileStream, fileName, opts, cb){
 
   function processFile(){
     try {
       var hasDocblock = docblock.parseAsObject(docblock.extract(source)).jsx;
       var hasExtension = /\.jsx$/.exec(fileName) || fileName === "stdin";
 
-      if (hasExtension && !hasDocblock) {
+      if ((opts['--force-transform'] || hasExtension) && !hasDocblock) {
         source = '/** @jsx React.DOM */' + source;
       }
 
-      if (hasExtension || hasDocblock) {
+      if (opts['--force-transform'] || hasExtension || hasDocblock) {
         source = react.transform(source, {harmony: true});
       }
 
@@ -59,8 +60,9 @@ function transformJSX(fileStream, fileName, cb){
   }
 
   // Allow omitting filename
-  if (typeof fileName === "function"){
-    cb = fileName;
+  if (typeof fileName === "object"){
+    cb = arguments[2];
+    opts = arguments[1];
     fileName = typeof fileStream === "string" ? fileStream : 'stdin';
   }
 
@@ -158,11 +160,20 @@ function createTempFiles(fileNames, fileContents, cb){
  * the new files (temp files) to the old file names, e.g.
  * {tempFile: originalFileName}
  *
- * @param  {Array}   files  File paths to transform.
+ * @param  {Array}    files File paths to transform.
+ * @param  {Object}   opts  Options.
  * @param  {Function} cb    Callback.
  */
-function transformFiles(files, cb){
-  async.map(files, transformJSX, function(err, fileContents){
+function transformFiles(files, opts, cb){
+  async.map(files, function(fileStream, fileName, cb){
+    if (arguments.length === 2) {
+      cb = arguments[1];
+      fileName = arguments[0];
+      return transformJSX(fileName, opts, cb);
+    } else {
+      return transformJSX(fileStream, fileName, opts, cb);
+    }
+  }, function(err, fileContents){
     if(err) return cb(err);
     debug("Successfully transformed %d files to JSX.", files.length);
     createTempFiles(files, fileContents, function(err, tempFileNames){
@@ -186,10 +197,11 @@ function transformFiles(files, cb){
  * we instead just write to a temp file and load it into JSHint.
  *
  * @param  {ReadableStream}   fileStream Readable stream containing data to transform.
+ * @param  {Object}   opts               Options.
  * @param  {Function} cb                 Callback.
  */
-function transformStream(fileStream, cb){
-  transformJSX(fileStream, function(err, contents){
+function transformStream(fileStream, opts, cb){
+  transformJSX(fileStream, opts, function(err, contents){
     if(err) return cb(err);
     createTempFile(path.join(process.cwd(), 'stdin'), contents, function(noErr, tempFileName){
       var out = {};
@@ -205,11 +217,11 @@ function transformStream(fileStream, cb){
  * or they are entered via stdin.
  * If they are named from the cli, we need to treat them as globs.
  */
-function run(files, cb){
+function run(files, opts, cb){
   if (Array.isArray(files)){
-    transformFiles(files, cb);
+    transformFiles(files, opts, cb);
   } else if (files instanceof require('stream').Readable){
-    transformStream(files, cb);
+    transformStream(files, opts, cb);
   } else {
     throw new Error("Invalid input.");
   }
