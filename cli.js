@@ -36,7 +36,8 @@ function showHelp(){
     this.queue(chunk.toString().replace(/jshint/g, 'jsxhint'));
   }, function end() {
     // This feels like a hack. There might be a better way to do this.
-    this.queue('      --force-transform  Force JSX to JS transformation');
+    this.queue('      --force-transform  Force JSX to JS transformation. Useful if you are\n' +
+               '                         using .js files without the pragma.');
   });
   jshint_proc.stderr.pipe(ts).pipe(process.stderr);
 }

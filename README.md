@@ -57,7 +57,7 @@ Options:
                             (DEPRECATED, use --reporter=checkstyle
                             instead)
       --force-transform  Force JSX to JS transform. Useful if you are using
-                           .js files with the pragma.
+                           .js files without the pragma.
   -v, --version          Display the current version
   -h, --help             Display help and usage details
 ```
