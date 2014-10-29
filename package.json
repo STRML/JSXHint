@@ -45,5 +45,8 @@
   "devDependencies": {
     "tap": "~0.4.9",
     "precommit-hook": "~1.0.2"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
   }
 }
