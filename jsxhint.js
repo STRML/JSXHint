@@ -16,6 +16,7 @@ var path = require('path');
 var jshint = require('jshint').JSHINT;
 var gather = require('jshint/src/cli').gather;
 var react = require('react-tools');
+var to5 = require('6to5');
 var through = require('through');
 var docblock = require('jstransform/src/docblock');
 var fork = require('child_process').fork;
@@ -39,6 +40,38 @@ var checkedSupportFiles = {};
  */
 function transformJSX(fileStream, fileName, opts, cb){
 
+  function transformSource(source){
+    if (opts['--6to5']) {
+      return to5.transform(source).code;
+    } else {
+      return react.transform(source, {harmony: true});
+    }
+  }
+
+  function transformError(error){
+    if (opts['--6to5']) {
+      return {
+        file: fileName,
+        error: {
+          line: error.loc.line,
+          character: opts['--acorn-column-1'] ? error.loc.column + 1 : error.loc.column,
+          reason: error.stack.match(/.*:\s(.*)\s\(\d+:\d+\)/)[1],
+          code: 'E041'
+        }
+      };
+    } else {
+      return {
+        file: fileName,
+        error: {
+          line: error.lineNumber,
+          character: error.column,
+          reason: error.description,
+          code: 'E041'
+        }
+      };
+    }
+  }
+
   function processFile(){
     try {
       var hasDocblock = docblock.parseAsObject(docblock.extract(source)).jsx;
@@ -49,13 +82,12 @@ function transformJSX(fileStream, fileName, opts, cb){
       }
 
       if (opts['--force-transform'] || hasExtension || hasDocblock) {
-        source = react.transform(source, {harmony: true});
+        source = transformSource(source);
       }
 
       cb(null, source);
     } catch(e) {
-      e.fileName = fileName;
-      cb(e);
+      cb(transformError(e));
     }
   }
 
