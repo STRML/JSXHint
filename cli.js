@@ -31,7 +31,7 @@ var jsxhintOptions = {};
  * Intercept -h to show jshint help.
  */
 function showHelp(){
-  var jshint_proc = fork(__dirname + '/node_modules/jshint/bin/jshint', ['-h'], {silent: true});
+  var jshint_proc = fork(require.resolve('jshint/bin/jshint'), ['-h'], {silent: true});
   var ts = through(function write(chunk){
     this.queue(chunk.toString().replace(/jshint/g, 'jsxhint'));
   }, function end() {
