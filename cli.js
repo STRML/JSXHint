@@ -24,7 +24,7 @@ var extend = require('extend');
 // calling jshint. Because jsxhint is run in part of a callback of jshint after
 // this check, we need to store jsxhint options someplace globally so we can
 // access them inside the callback.
-var acceptedJSXHintOptions = ['--force-transform'];
+var acceptedJSXHintOptions = ['--jsx-only'];
 var jsxhintOptions = {};
 
 /**
@@ -36,8 +36,8 @@ function showHelp(){
     this.queue(chunk.toString().replace(/jshint/g, 'jsxhint'));
   }, function end() {
     // This feels like a hack. There might be a better way to do this.
-    this.queue('      --force-transform  Force JSX to JS transformation. Useful if you are\n' +
-               '                         using .js files without the pragma.');
+    this.queue('      --jsx-only         Only transform files with the .jsx extension.\n' +
+               '                         Will run somewhat faster.');
   });
   jshint_proc.stderr.pipe(ts).pipe(process.stderr);
 }

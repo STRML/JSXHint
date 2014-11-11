@@ -22,12 +22,12 @@ function drain_stream(stream, cb){
 
 test('Convert JSX to JS', function(t){
   t.plan(4);
-  jsxhint.transformJSX('./fixtures/test_article_without_pragma.js', {}, function(err, data){
+  jsxhint.transformJSX('./fixtures/test_article_without_pragma.js', { '--jsx-only' : true }, function(err, data){
     t.ifError(err);
     t.equal(data.match(/React.DOM/), null, 'JS was converted but should not be');
   });
 
-  jsxhint.transformJSX('./fixtures/test_article_without_pragma.js', { '--force-transform': true }, function(err, data){
+  jsxhint.transformJSX('./fixtures/test_article_without_pragma.js', {}, function(err, data){
     t.ifError(err);
     t.equal(data.match(/<form/), null, 'JS was not properly converted');
   });

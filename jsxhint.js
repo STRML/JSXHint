@@ -17,7 +17,6 @@ var jshint = require('jshint').JSHINT;
 var gather = require('jshint/src/cli').gather;
 var react = require('react-tools');
 var through = require('through');
-var docblock = require('jstransform/src/docblock');
 var fork = require('child_process').fork;
 var async = require('async');
 var path = require('path');
@@ -40,22 +39,22 @@ var checkedSupportFiles = {};
 function transformJSX(fileStream, fileName, opts, cb){
 
   function processFile(){
+    var hasExtension = /\.jsx$/.exec(fileName) || fileName === "stdin";
+    var err;
     try {
-      var hasDocblock = docblock.parseAsObject(docblock.extract(source)).jsx;
-      var hasExtension = /\.jsx$/.exec(fileName) || fileName === "stdin";
-
-      if ((opts['--force-transform'] || hasExtension) && !hasDocblock) {
-        source = '/** @jsx React.DOM */' + source;
+      if ((opts['--jsx-only'] && hasExtension) || !opts['--jsx-only']) {
+        source = react.transform(source, {harmony: false});
       }
-
-      if (opts['--force-transform'] || hasExtension || hasDocblock) {
-        source = react.transform(source, {harmony: true});
-      }
-
-      cb(null, source);
     } catch(e) {
-      e.fileName = fileName;
-      cb(e);
+      // Only throw an error if this was definitely a jsx file.
+      // Seems that esprima has some problems with some js syntax.
+      if (hasExtension) {
+        console.error("Error while transforming jsx in file " + fileName + "\n", e.stack);
+        e.fileName = fileName;
+        err = e;
+      }
+    } finally {
+      cb(err, source);
     }
   }
 
