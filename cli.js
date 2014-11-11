@@ -24,7 +24,7 @@ var extend = require('extend');
 // calling jshint. Because jsxhint is run in part of a callback of jshint after
 // this check, we need to store jsxhint options someplace globally so we can
 // access them inside the callback.
-var acceptedJSXHintOptions = ['--force-transform'];
+var acceptedJSXHintOptions = ['--force-transform', '--6to5', '--acorn-column-1'];
 var jsxhintOptions = {};
 
 /**
@@ -37,7 +37,10 @@ function showHelp(){
   }, function end() {
     // This feels like a hack. There might be a better way to do this.
     this.queue('      --force-transform  Force JSX to JS transformation. Useful if you are\n' +
-               '                         using .js files without the pragma.');
+               '                         using .js files without the pragma.\n');
+    this.queue('      --6to5             Use 6to5 (acorn parser) instead of react esprima.\n' +
+               '                         Useful if you are using es6-module/es7-async/etc.\n');
+    this.queue('      --acorn-column-1   Set column index start at 1 for acorn parser. Default 0.\n');
   });
   jshint_proc.stderr.pipe(ts).pipe(process.stderr);
 }

@@ -15,6 +15,7 @@
   "immed": true,
   "smarttabs": true,
   "strict": true,
+  "esnext": true,
   "globals": {
     "define": true
   }
