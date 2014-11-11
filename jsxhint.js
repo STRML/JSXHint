@@ -54,8 +54,16 @@ function transformJSX(fileStream, fileName, opts, cb){
 
       cb(null, source);
     } catch(e) {
-      e.fileName = fileName;
-      cb(e);
+      var error = {
+        file: fileName,
+        error: {
+          line: e.lineNumber,
+          character: e.column,
+          reason: e.description,
+          code: 'E041'
+        }
+      };
+      cb(error);
     }
   }
 

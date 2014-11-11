@@ -121,15 +121,7 @@ try {
         opts.useStdin = false;
 
         if (err) {
-          opts.reporter([{
-            file: err.fileName,
-            error: {
-              line: err.lineNumber,
-              character: err.column,
-              reason: err.description,
-              code: 'E041'
-            }
-          }], {}, opts);
+          opts.reporter([err], {}, opts);
           return process.exit(1);
         }
 
