@@ -4,6 +4,7 @@
   "newcap": true,
   "eqeqeq": true,
   "eqnull": true,
+  "esnext": true,
   "undef": true,
   "devel": true,
   "node": true,

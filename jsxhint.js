@@ -16,6 +16,7 @@ var path = require('path');
 var jshint = require('jshint').JSHINT;
 var gather = require('jshint/src/cli').gather;
 var react = require('react-tools');
+var to5 = require('6to5');
 var through = require('through');
 var fork = require('child_process').fork;
 var async = require('async');
@@ -38,20 +39,51 @@ var checkedSupportFiles = {};
  */
 function transformJSX(fileStream, fileName, opts, cb){
 
+  function transformSource(source){
+    if (opts['--6to5']) {
+      return to5.transform(source).code;
+    } else {
+      return react.transform(source, {harmony: false});
+    }
+  }
+
+  function transformError(error){
+    if (opts['--6to5']) {
+      return {
+        file: fileName,
+        error: {
+          line: error.loc.line,
+          character: error.loc.column,
+          reason: error.stack.match(/.*:\s(.*)\s\(\d+:\d+\)/)[1],
+          code: 'E041'
+        }
+      };
+    } else {
+      return {
+        file: fileName,
+        error: {
+          line: error.lineNumber,
+          character: error.column,
+          reason: error.description,
+          code: 'E041'
+        }
+      };
+    }
+  }
+
   function processFile(){
     var hasExtension = /\.jsx$/.exec(fileName) || fileName === "stdin";
     var err;
     try {
       if ((opts['--jsx-only'] && hasExtension) || !opts['--jsx-only']) {
-        source = react.transform(source, {harmony: false});
+        source = transformSource(source);
       }
     } catch(e) {
       // Only throw an error if this was definitely a jsx file.
       // Seems that esprima has some problems with some js syntax.
       if (hasExtension) {
         console.error("Error while transforming jsx in file " + fileName + "\n", e.stack);
-        e.fileName = fileName;
-        err = e;
+        err = transformError(e);
       }
     } finally {
       cb(err, source);
