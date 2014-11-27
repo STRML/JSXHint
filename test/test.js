@@ -19,6 +19,13 @@ function drain_stream(stream, cb){
   });
 }
 
+test('Strip flow types', function(t){
+  t.plan(2);
+  jsxhint.transformJSX('./fixtures/test_flow.js', {}, function(err, data){
+    t.ifError(err);
+    t.equal(data.match(/text: string/), null, 'Flow types were not properly stripped.');
+  });
+});
 
 test('Convert JSX to JS', function(t){
   t.plan(20);

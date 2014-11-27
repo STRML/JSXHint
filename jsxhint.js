@@ -43,7 +43,7 @@ function transformJSX(fileStream, fileName, opts, cb){
     if (opts['--6to5']) {
       return to5.transform(source).code;
     } else {
-      return react.transform(source, {harmony: false});
+      return react.transform(source, {harmony: false, stripTypes: true});
     }
   }
 
