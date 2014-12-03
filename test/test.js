@@ -28,7 +28,7 @@ test('Strip flow types', function(t){
 });
 
 test('Convert JSX to JS', function(t){
-  t.plan(20);
+  t.plan(26);
   jsxhint.transformJSX('./fixtures/test_article_without_pragma.js', { '--jsx-only' : true }, function(err, data){
     t.ifError(err);
     t.equal(data.match(/React.DOM/), null, 'JS was converted but should not be.');
@@ -72,8 +72,7 @@ test('Convert JSX to JS', function(t){
   var jsxhint_proc = child_process.fork('../cli', ['fixtures/test_es6module.jsx'], {silent: true});
   drain_stream(jsxhint_proc.stdout, function(err, jsxhintOut){
     t.ifError(err);
-    t.equal(jsxhintOut, 'fixtures/test_es6module.jsx: line 3, col 8, Unexpected token *\n\n1 error\n',
-      'JSXHint should fail using esprima parser.');
+    t.ok(jsxhintOut.length > 0, 'JSXHint should fail using esprima parser.');
   });
 
   var jsxhint_proc = child_process.fork('../cli', ['--6to5', 'fixtures/test_es6module.jsx'], {silent: true});
@@ -82,6 +81,26 @@ test('Convert JSX to JS', function(t){
     t.equal(jsxhintOut, '',
       'JSXHint should succeed using acorn parser.');
   });
+
+  var jsxhint_proc = child_process.fork('../cli', ['fixtures/test_es7exponentiation.jsx'], {silent: true});
+  drain_stream(jsxhint_proc.stdout, function(err, jsxhintOut){
+    t.ifError(err);
+    t.ok(jsxhintOut.length > 0, 'JSXHint should fail using esprima parser.');
+  });
+
+  var jsxhint_proc = child_process.fork('../cli', ['--6to5', 'fixtures/test_es7exponentiation.jsx'], {silent: true});
+  drain_stream(jsxhint_proc.stdout, function(err, jsxhintOut){
+    t.ifError(err);
+    t.ok(jsxhintOut.length > 0,
+    'JSXHint should fail using acorn parser.');
+  });
+
+  var jsxhint_proc = child_process.fork('../cli', ['--7to5', 'fixtures/test_es7exponentiation.jsx'], {silent: true});
+  drain_stream(jsxhint_proc.stdout, function(err, jsxhintOut){
+    t.ifError(err);
+    t.equal(jsxhintOut, '',
+      'JSXHint should succeed using acorn parser with experimental support for ES7.');
+    });
 });
 
 test('Test stream input into transformJSX', function(t){
@@ -158,13 +177,14 @@ test('JSX transpiler error should look like JSHint output', function(t){
 
   drain_stream(jsxhint_proc.stdout, function(err, jsxhintOut){
     t.ifError(err);
-    t.equal(jsxhintOut, 'fixtures/test_malformed.jsx: line 7, col 16, Unexpected token ;\n\n1 error\n', 'JSXHint output should display the transplier error through the JSHint reporter.');
+    t.equal(jsxhintOut, 'fixtures/test_malformed.jsx: line 7, col 16, Unexpected token ;\n\n1 error\n',
+      'JSXHint output should display the transplier error through the JSHint reporter.');
   });
 
   jsxhint_proc = child_process.fork('../cli', ['--6to5', 'fixtures/test_malformed.jsx'], {silent: true});
   drain_stream(jsxhint_proc.stdout, function(err, jsxhintOut){
     t.ifError(err);
     t.equal(jsxhintOut, 'fixtures/test_malformed.jsx: line 7, col 15, Unexpected token\n\n1 error\n',
-      'JSXHint output should display the transplier error through the JSHint reporter. (Using --6to5 and acorn-column-1)');
+      'JSXHint output should display the transplier error through the JSHint reporter. (Using --6to5)');
   });
 });

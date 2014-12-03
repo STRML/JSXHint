@@ -84,5 +84,7 @@ Options:
       --jsx-only         Only transform files with the .jsx extension.
                          Will run somewhat faster.
       --6to5             Use 6to5 (acorn parser) instead of react esprima.
-                         Useful if you are using es6-module/es7-async/etc.
+                         Useful if you are using es6-module, etc.
+      --7to5             Use 6to5 with experimental support for ES7.
+                         Useful if you are using es7-async, etc.
 ```
