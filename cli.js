@@ -24,7 +24,7 @@ var extend = require('extend');
 // calling jshint. Because jsxhint is run in part of a callback of jshint after
 // this check, we need to store jsxhint options someplace globally so we can
 // access them inside the callback.
-var acceptedJSXHintOptions = ['--jsx-only', '--6to5', '--7to5'];
+var acceptedJSXHintOptions = ['--jsx-only', '--6to5', '--7to5', '--harmony'];
 var jsxhintOptions = {};
 
 /**
@@ -42,6 +42,8 @@ function showHelp(){
                '                         Useful if you are using es6-module, etc.\n');
     this.queue('      --7to5             Use 6to5 with experimental support for ES7.\n' +
                '                         Useful if you are using es7-async, etc.\n');
+    this.queue('      --harmony          Use react esprima with ES6 transformation support.\n' +
+               '                         Useful if you are using both es6-class and react.\n');
   });
   jshint_proc.stderr.pipe(ts).pipe(process.stderr);
 }
