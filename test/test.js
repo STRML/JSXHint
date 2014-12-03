@@ -28,7 +28,7 @@ test('Strip flow types', function(t){
 });
 
 test('Convert JSX to JS', function(t){
-  t.plan(26);
+  t.plan(28);
   jsxhint.transformJSX('./fixtures/test_article_without_pragma.js', { '--jsx-only' : true }, function(err, data){
     t.ifError(err);
     t.equal(data.match(/React.DOM/), null, 'JS was converted but should not be.');
@@ -67,6 +67,11 @@ test('Convert JSX to JS', function(t){
   jsxhint.transformJSX('./fixtures/test_article.jsx', { '--6to5':true }, function(err, data){
     t.ifError(err);
     t.equal(data.match(/<form/), null, 'JS was not properly converted. (Using --6to5)');
+  });
+
+  jsxhint.transformJSX('./fixtures/test_harmony.js', { '--harmony':true }, function(err, data){
+    t.ifError(err);
+    t.equal(data.match(/class/), null, 'JS was not properly converted. (Using --harmony)');
   });
 
   var jsxhint_proc = child_process.fork('../cli', ['fixtures/test_es6module.jsx'], {silent: true});
