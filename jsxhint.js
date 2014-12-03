@@ -40,15 +40,15 @@ var checkedSupportFiles = {};
 function transformJSX(fileStream, fileName, opts, cb){
 
   function transformSource(source){
-    if (opts['--6to5']) {
-      return to5.transform(source).code;
+    if (opts['--6to5'] || opts['--7to5']) {
+      return to5.transform(source, {experimental: opts['--7to5'] || false}).code;
     } else {
       return react.transform(source, {harmony: false, stripTypes: true});
     }
   }
 
   function transformError(error){
-    if (opts['--6to5']) {
+    if (opts['--6to5'] || opts['--7to5']) {
       return {
         file: fileName,
         error: {
