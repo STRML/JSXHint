@@ -16,7 +16,11 @@ var path = require('path');
 var jshint = require('jshint').JSHINT;
 var gather = require('jshint/src/cli').gather;
 var react = require('react-tools');
-var to5 = require('6to5');
+try {
+  var to5 = require('6to5');
+} catch(e) {
+  // ignore
+}
 var through = require('through');
 var fork = require('child_process').fork;
 var async = require('async');
@@ -95,6 +99,10 @@ function transformJSX(fileStream, fileName, opts, cb){
     cb = arguments[2];
     opts = arguments[1];
     fileName = typeof fileStream === "string" ? fileStream : 'stdin';
+  }
+
+  if (!to5 && (opts['--6to5'] || opts['--7to5'])) {
+    throw new Error("Optional 6to5 parser not installed. Please `npm install [-g] 6to5`.");
   }
 
   // Allow passing strings into this method e.g. when using it as a lib

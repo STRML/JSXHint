@@ -39,7 +39,8 @@ function showHelp(){
     this.queue('      --jsx-only         Only transform files with the .jsx extension.\n' +
                '                         Will run somewhat faster.\n');
     this.queue('      --6to5             Use 6to5 (acorn parser) instead of react esprima.\n' +
-               '                         Useful if you are using es6-module, etc.\n');
+               '                         Useful if you are using es6-module, etc. You must \n' +
+               '                         install the module `6to5` manually with npm.\n');
     this.queue('      --7to5             Use 6to5 with experimental support for ES7.\n' +
                '                         Useful if you are using es7-async, etc.\n');
     this.queue('      --harmony          Use react esprima with ES6 transformation support.\n' +
