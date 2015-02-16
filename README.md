@@ -47,9 +47,9 @@ jsxhint - < src/file.jsx
 # Exclude files
 jsxhint --exclude excludeme.jsx src/foo/*.jsx
 
-# Lint project using 6to5 acorn parser
-# Note that you must explicitly install `6to5` if you wish to use it.
-jsxhint --6to5 src/**/*
+# Lint project using bable (previously 6to5)
+# Note that you must explicitly install `babel` if you wish to use it.
+jsxhint --babel src/**/*
 ```
 
 ##Installation
@@ -84,11 +84,11 @@ Options:
   -h, --help             Display help and usage details
       --jsx-only         Only transform files with the .jsx extension.
                          Will run somewhat faster.
-      --6to5             Use 6to5 (acorn parser) instead of react esprima.
+      --babel            Use babel (6to5) instead of react esprima.
                          Useful if you are using es6-module, etc. You must
-                         install the module `6to5` manually with npm.
-      --7to5             Use 6to5 with experimental support for ES7.
-                         Useful if you are using es7-async, etc.
+                         install the module `babel` manually with npm.
+      --babel-experimental  Use babel with experimental support for ES7.
+                            Useful if you are using es7-async, etc.
       --harmony          Use react esprima with ES6 transformation support.
                          Useful if you are using both es6-class and react.
 ```

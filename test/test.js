@@ -49,24 +49,24 @@ test('Convert JSX to JS', function(t){
     t.equal(data.match(/<form/), null, 'JS was not properly converted.');
   });
 
-  jsxhint.transformJSX('./fixtures/test_article_without_pragma.js', { '--6to5': true, '--jsx-only' : true }, function(err, data){
+  jsxhint.transformJSX('./fixtures/test_article_without_pragma.js', { '--babel': true, '--jsx-only' : true }, function(err, data){
     t.ifError(err);
-    t.equal(data.match(/React.DOM/), null, 'JS was converted but should not be. (Using --6to5)');
+    t.equal(data.match(/React.DOM/), null, 'JS was converted but should not be. (Using --babel)');
   });
 
-  jsxhint.transformJSX('./fixtures/test_article_without_pragma.js', { '--6to5':true }, function(err, data){
+  jsxhint.transformJSX('./fixtures/test_article_without_pragma.js', { '--babel':true }, function(err, data){
     t.ifError(err);
-    t.equal(data.match(/<form/), null, 'JS was not properly converted. (Using --6to5)');
+    t.equal(data.match(/<form/), null, 'JS was not properly converted. (Using --babel)');
   });
 
-  jsxhint.transformJSX('./fixtures/test_article.js', { '--6to5':true }, function(err, data){
+  jsxhint.transformJSX('./fixtures/test_article.js', { '--babel':true }, function(err, data){
     t.ifError(err);
-    t.equal(data.match(/<form/), null, 'JS was not properly converted. (Using --6to5)');
+    t.equal(data.match(/<form/), null, 'JS was not properly converted. (Using --babel)');
   });
 
-  jsxhint.transformJSX('./fixtures/test_article.jsx', { '--6to5':true }, function(err, data){
+  jsxhint.transformJSX('./fixtures/test_article.jsx', { '--babel':true }, function(err, data){
     t.ifError(err);
-    t.equal(data.match(/<form/), null, 'JS was not properly converted. (Using --6to5)');
+    t.equal(data.match(/<form/), null, 'JS was not properly converted. (Using --babel)');
   });
 
   jsxhint.transformJSX('./fixtures/test_harmony.js', { '--harmony':true }, function(err, data){
@@ -80,7 +80,7 @@ test('Convert JSX to JS', function(t){
     t.ok(jsxhintOut.length > 0, 'JSXHint should fail using esprima parser.');
   });
 
-  var jsxhint_proc = child_process.fork('../cli', ['--6to5', 'fixtures/test_es6module.jsx'], {silent: true});
+  var jsxhint_proc = child_process.fork('../cli', ['--babel', 'fixtures/test_es6module.jsx'], {silent: true});
   drain_stream(jsxhint_proc.stdout, function(err, jsxhintOut){
     t.ifError(err);
     t.equal(jsxhintOut, '',
@@ -93,14 +93,14 @@ test('Convert JSX to JS', function(t){
     t.ok(jsxhintOut.length > 0, 'JSXHint should fail using esprima parser.');
   });
 
-  var jsxhint_proc = child_process.fork('../cli', ['--6to5', 'fixtures/test_es7exponentiation.jsx'], {silent: true});
+  var jsxhint_proc = child_process.fork('../cli', ['--babel', 'fixtures/test_es7exponentiation.jsx'], {silent: true});
   drain_stream(jsxhint_proc.stdout, function(err, jsxhintOut){
     t.ifError(err);
     t.ok(jsxhintOut.length > 0,
     'JSXHint should fail using acorn parser.');
   });
 
-  var jsxhint_proc = child_process.fork('../cli', ['--7to5', 'fixtures/test_es7exponentiation.jsx'], {silent: true});
+  var jsxhint_proc = child_process.fork('../cli', ['--babel-experimental', 'fixtures/test_es7exponentiation.jsx'], {silent: true});
   drain_stream(jsxhint_proc.stdout, function(err, jsxhintOut){
     t.ifError(err);
     t.equal(jsxhintOut, '',
@@ -122,14 +122,14 @@ test('Test stream input into transformJSX', function(t){
     t.equal(data.match(/<form/), null, 'JS was not properly converted.');
   });
   // Test with provided filename
-  jsxhint.transformJSX(readStream, 'fixtures/test_article.js', { '--6to5': true }, function(err, data){
+  jsxhint.transformJSX(readStream, 'fixtures/test_article.js', { '--babel': true }, function(err, data){
     t.ifError(err);
-    t.equal(data.match(/<form/), null, 'JS was not properly converted. (Using --6to5)');
+    t.equal(data.match(/<form/), null, 'JS was not properly converted. (Using --babel)');
   });
   // Test without provided filename (assumes 'stdin')
-  jsxhint.transformJSX(readStream, { '--6to5': true }, function(err, data){
+  jsxhint.transformJSX(readStream, { '--babel': true }, function(err, data){
     t.ifError(err);
-    t.equal(data.match(/<form/), null, 'JS was not properly converted. (Using --6to5)');
+    t.equal(data.match(/<form/), null, 'JS was not properly converted. (Using --babel)');
   });
 });
 
@@ -146,12 +146,12 @@ test('Error output should match jshint', function(t){
     });
   });
 
-  jsxhint_proc = child_process.fork('../cli', ['--6to5', 'fixtures/jshint_parity.js'], {silent: true});
+  jsxhint_proc = child_process.fork('../cli', ['--babel', 'fixtures/jshint_parity.js'], {silent: true});
   drain_stream(jshint_proc.stdout, function(err, jshintOut){
     t.ifError(err);
     drain_stream(jsxhint_proc.stdout, function(err, jsxhintOut){
       t.ifError(err);
-      t.equal(jshintOut, jsxhintOut, "JSHint output formatting should match JSXHint output. (Using --6to5)");
+      t.equal(jshintOut, jsxhintOut, "JSHint output formatting should match JSXHint output. (Using --babel)");
     });
   });
 });
@@ -168,11 +168,11 @@ test('JSX transpiler error should look like JSHint output, instead of crashing',
       'JSXHint output should display the transplier error through the JSHint reporter.');
   });
 
-  jsxhint_proc = child_process.fork('../cli', ['--6to5', 'fixtures/test_malformed.jsx'], {silent: true});
+  jsxhint_proc = child_process.fork('../cli', ['--babel', 'fixtures/test_malformed.jsx'], {silent: true});
   drain_stream(jsxhint_proc.stdout, function(err, jsxhintOut){
     t.ifError(err);
     t.equal(jsxhintOut, 'fixtures/test_malformed.jsx: line 7, col 15, Unexpected token\n\n1 error\n',
-      'JSXHint output should display the transplier error through the JSHint reporter. (Using --6to5)');
+      'JSXHint output should display the transplier error through the JSHint reporter. (Using --babel)');
   });
 });
 
@@ -186,10 +186,10 @@ test('JSX transpiler error should look like JSHint output', function(t){
       'JSXHint output should display the transplier error through the JSHint reporter.');
   });
 
-  jsxhint_proc = child_process.fork('../cli', ['--6to5', 'fixtures/test_malformed.jsx'], {silent: true});
+  jsxhint_proc = child_process.fork('../cli', ['--babel', 'fixtures/test_malformed.jsx'], {silent: true});
   drain_stream(jsxhint_proc.stdout, function(err, jsxhintOut){
     t.ifError(err);
     t.equal(jsxhintOut, 'fixtures/test_malformed.jsx: line 7, col 15, Unexpected token\n\n1 error\n',
-      'JSXHint output should display the transplier error through the JSHint reporter. (Using --6to5)');
+      'JSXHint output should display the transplier error through the JSHint reporter. (Using --babel)');
   });
 });

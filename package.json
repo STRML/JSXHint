@@ -43,9 +43,9 @@
     "through": "~2.3.6"
   },
   "devDependencies": {
-    "6to5": "^1.14.6",
-    "tap": "~0.4.13",
-    "precommit-hook": "~1.0.7"
+    "babel": "^4.0.1",
+    "precommit-hook": "~1.0.7",
+    "tap": "~0.4.13"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org"

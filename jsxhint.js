@@ -17,7 +17,7 @@ var jshint = require('jshint').JSHINT;
 var gather = require('jshint/src/cli').gather;
 var react = require('react-tools');
 try {
-  var to5 = require('6to5');
+  var babel = require('babel');
 } catch(e) {
   // ignore
 }
@@ -44,15 +44,15 @@ var checkedSupportFiles = {};
 function transformJSX(fileStream, fileName, opts, cb){
 
   function transformSource(source){
-    if (opts['--6to5'] || opts['--7to5']) {
-      return to5.transform(source, {experimental: opts['--7to5'] || false}).code;
+    if (opts['--babel'] || opts['--babel-experimental']) {
+      return babel.transform(source, {experimental: opts['--babel-experimental'] || false}).code;
     } else {
       return react.transform(source, {harmony: opts['--harmony'], stripTypes: true});
     }
   }
 
   function transformError(error){
-    if (opts['--6to5'] || opts['--7to5']) {
+    if (opts['--babel'] || opts['--babel-experimental']) {
       return {
         file: fileName,
         error: {
@@ -101,8 +101,8 @@ function transformJSX(fileStream, fileName, opts, cb){
     fileName = typeof fileStream === "string" ? fileStream : 'stdin';
   }
 
-  if (!to5 && (opts['--6to5'] || opts['--7to5'])) {
-    throw new Error("Optional 6to5 parser not installed. Please `npm install [-g] 6to5`.");
+  if (!babel && (opts['--babel'] || opts['--babel-experimental'])) {
+    throw new Error("Optional babel parser not installed. Please `npm install [-g] babel`.");
   }
 
   // Allow passing strings into this method e.g. when using it as a lib
