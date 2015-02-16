@@ -30,9 +30,13 @@ var jsxhintOptions = {};
 function showHelp(){
   var jshint_proc = fork(require.resolve('jshint/bin/jshint'), ['-h'], {silent: true});
   var ts = through(function write(chunk){
-    this.queue(chunk.toString().replace(/jshint/g, 'jsxhint'));
+    this.queue(chunk.toString().replace(/(jshint)\b/g, 'jsxhint'));
   }, function end() {
     // This feels like a hack. There might be a better way to do this.
+    this.queue('\nThe above options are native to JSHint, which JSXHint extends.\n');
+    this.queue('\x1b[1m'); // bold
+    this.queue('\nJSXHint Options:\n');
+    this.queue('\x1b[0m');
     this.queue('      --jsx-only         Only transform files with the .jsx extension.\n' +
                '                         Will run somewhat faster.\n');
     this.queue('      --babel            Use babel (6to5) instead of react esprima.\n' +
