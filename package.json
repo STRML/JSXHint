@@ -36,7 +36,6 @@
     "extend": "^2.0.0",
     "graceful-fs": "~3.0.5",
     "jshint": "^2.6.0",
-    "jstransform": "~8.2.0",
     "mkdirp": "~0.5.0",
     "react-tools": "^0.12.1",
     "rimraf": "~2.2.8",
