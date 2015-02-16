@@ -13,23 +13,17 @@
 var fs = require('graceful-fs');
 var path = require('path');
 
-var jshint = require('jshint').JSHINT;
-var gather = require('jshint/src/cli').gather;
 var react = require('react-tools');
 try {
   var babel = require('babel');
 } catch(e) {
   // ignore
 }
-var through = require('through');
-var fork = require('child_process').fork;
 var async = require('async');
 var path = require('path');
 var mkdirp = require('mkdirp');
 var debug = require('debug')('jsxhint');
 
-var currFile = require.main ? require.main.filename : undefined;
-var prjRoot = path.dirname(currFile || process.cwd());
 // Check map for copied support files (package.json, .jshintrc) for a speedup.
 var checkedSupportFiles = {};
 

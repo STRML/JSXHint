@@ -14,10 +14,7 @@ var jsxhint = require('./jsxhint');
 var jshintcli = require('jshint/src/cli');
 var fork = require('child_process').fork;
 var through = require('through');
-var fs = require('fs');
-var path = require('path');
 var rimraf = require('rimraf');
-var extend = require('extend');
 
 // The jshint call will throw an error if it encounters an option that it does
 // not recognize. Therefore, we need to filter out jsxhint options before
