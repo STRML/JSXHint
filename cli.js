@@ -15,6 +15,8 @@ var jshintcli = require('jshint/src/cli');
 var fork = require('child_process').fork;
 var through = require('through');
 var rimraf = require('rimraf');
+var glob = require('glob-all');
+var isWin = /^win/.test(process.platform);
 
 // The jshint call will throw an error if it encounters an option that it does
 // not recognize. Therefore, we need to filter out jsxhint options before
@@ -69,13 +71,38 @@ function showVersion(){
  */
 function run(opts, cb){
   opts.extensions = opts.extensions ? opts.extensions + ',.jsx' : '.jsx';
-  var files = jshintcli.gather(opts);
 
-  if (opts.useStdin) {
-    jsxhint.transformStream(process.stdin, jsxhintOptions, cb);
-  } else {
-    jsxhint.transformFiles(files, jsxhintOptions, cb);
-  }
+  runGlob(opts.args, {nodir: true}, function(err, globbed) {
+    if (err) return cb(err);
+
+    // Reassign the globbed files back to opts.args, so it looks like we just
+    // fed jshint a big list of files.
+    opts.args = globbed;
+    var files = jshintcli.gather(opts);
+
+    if (opts.useStdin) {
+      jsxhint.transformStream(process.stdin, jsxhintOptions, cb);
+    } else {
+      jsxhint.transformFiles(files, jsxhintOptions, cb);
+    }
+  });
+}
+
+/**
+ * Collects files. If running on Windows, runs glob; otherwise, simply calls back with 
+ * the files names.
+ *
+ * Glob is for cmd.exe, the bane of my existence.
+ * We use glob-all so we can support multiple patterns.
+ * 
+ * @param  {Array}    files File names / glob patterns.
+ * @param  {Object}   opts  Glob options.
+ * @param  {Function} cb    Callback.
+ */
+function runGlob(files, opts, cb) {
+  if (isWin) return glob(files, opts, cb);
+  // Not needed on unixy systems, they glob on their own
+  cb(null, files);
 }
 
 /**
