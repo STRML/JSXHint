@@ -80,27 +80,27 @@ test('Convert JSX to JS', function(t){
     t.ok(jsxhintOut.length > 0, 'JSXHint should fail using esprima parser.');
   });
 
-  var jsxhint_proc = child_process.fork('../cli', ['--babel', 'fixtures/test_es6module.jsx'], {silent: true});
+  jsxhint_proc = child_process.fork('../cli', ['--babel', 'fixtures/test_es6module.jsx'], {silent: true});
   drain_stream(jsxhint_proc.stdout, function(err, jsxhintOut){
     t.ifError(err);
     t.equal(jsxhintOut, '',
       'JSXHint should succeed using acorn parser.');
   });
 
-  var jsxhint_proc = child_process.fork('../cli', ['fixtures/test_es7exponentiation.jsx'], {silent: true});
+  jsxhint_proc = child_process.fork('../cli', ['fixtures/test_es7exponentiation.jsx'], {silent: true});
   drain_stream(jsxhint_proc.stdout, function(err, jsxhintOut){
     t.ifError(err);
     t.ok(jsxhintOut.length > 0, 'JSXHint should fail using esprima parser.');
   });
 
-  var jsxhint_proc = child_process.fork('../cli', ['--babel', 'fixtures/test_es7exponentiation.jsx'], {silent: true});
+  jsxhint_proc = child_process.fork('../cli', ['--babel', 'fixtures/test_es7exponentiation.jsx'], {silent: true});
   drain_stream(jsxhint_proc.stdout, function(err, jsxhintOut){
     t.ifError(err);
     t.ok(jsxhintOut.length > 0,
     'JSXHint should fail using acorn parser.');
   });
 
-  var jsxhint_proc = child_process.fork('../cli', ['--babel-experimental', 'fixtures/test_es7exponentiation.jsx'], {silent: true});
+  jsxhint_proc = child_process.fork('../cli', ['--babel-experimental', 'fixtures/test_es7exponentiation.jsx'], {silent: true});
   drain_stream(jsxhint_proc.stdout, function(err, jsxhintOut){
     t.ifError(err);
     t.equal(jsxhintOut, '',
