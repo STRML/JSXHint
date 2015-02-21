@@ -52,7 +52,7 @@ jsxhint - < src/file.jsx
 # Exclude files
 jsxhint --exclude excludeme.jsx src/foo/*.jsx
 
-# Lint project using bable (previously 6to5)
+# Lint project using babel (previously 6to5)
 # Note that you must explicitly install `babel` if you wish to use it.
 jsxhint --babel src/**/*
 ```
