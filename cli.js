@@ -60,7 +60,25 @@ function showVersion(){
     this.queue("JSXHint v" + require('./package.json').version + " (" +
       chunk.toString().replace("\n", "") + ")\n");
   });
-  jshint_proc.stderr.pipe(ts).pipe(process.stderr);}
+  jshint_proc.stderr.pipe(ts).pipe(process.stderr);
+}
+
+/**
+ * Wrapper around globbing function. Ignores '.' which has special meaning in jshint.
+ * @param  {Array}    args File/glob list.
+ * @param  {Object}   opts Glob options.
+ * @param  {Function} cb   Callback.
+ */
+function runGlob(args, opts, cb) {
+  var dotIdx = args.indexOf('.');
+  if (dotIdx !== -1) {
+    args.splice(dotIdx, 1);
+  }
+  glob(args, opts, function(err, globbed) {
+    if (Array.isArray(globbed) && dotIdx !== -1) globbed.push('.');
+    cb(err, globbed);
+  });
+}
 
 /**
  * Proxy run function. Reaches out to jsxhint to transform
@@ -73,7 +91,7 @@ function run(opts, cb){
 
   // glob-all fixes windows glob issues and provides array support
   // i.e. jsxhint ['jsx/**/*','!scripts/**/*','scripts/outlier.jsx']
-  glob(opts.args, {nodir: true}, function(err, globbed) {
+  runGlob(opts.args, {nodir: true}, function(err, globbed) {
     if (err) return cb(err);
 
     // Reassign the globbed files back to opts.args, so it looks like we just
