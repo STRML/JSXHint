@@ -43,8 +43,11 @@ jsxhint --jsx-only src/**/*
 # Basic globbing
 jsxhint -c ./other-directory/.jshintrc src/foo/*.jsx
 
-# Pattern arrays
-jsxhint ['jsx/**/*','!scripts/**/*','scripts/outlier.jsx']
+# Multiple patterns
+jsxhint 'jsx/**/*' '!scripts/**/*' 'scripts/outlier.jsx'
+
+# Common multiple patterns usecase - lint .js and .jsx, ignore modules and build
+jsxhint '**/*.js*' '!node_modules/**/*' '!build/**/*'
 
 # Accepts stdin with '-'
 jsxhint - < src/file.jsx
