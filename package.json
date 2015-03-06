@@ -42,7 +42,7 @@
     "through": "~2.3.6"
   },
   "devDependencies": {
-    "babel": "^4.0.1",
+    "babel": "^4.6.6",
     "precommit-hook": "~1.0.7",
     "tap": "~0.4.13"
   },
