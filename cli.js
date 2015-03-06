@@ -22,7 +22,7 @@ var glob = require('glob-all');
 // calling jshint. Because jsxhint is run in part of a callback of jshint after
 // this check, we need to store jsxhint options someplace globally so we can
 // access them inside the callback.
-var acceptedJSXHintOptions = ['--jsx-only', '--babel', '--babel-experimental', '--harmony'];
+var acceptedJSXHintOptions = ['--jsx-only', '--babel', '--babel-experimental', '--harmony', '--really-is-jsx'];
 var jsxhintOptions = {};
 
 /**
@@ -47,6 +47,8 @@ function showHelp(){
                '                            Useful if you are using es7-async, etc.\n');
     this.queue('      --harmony          Use react esprima with ES6 transformation support.\n' +
                '                         Useful if you are using both es6-class and react.\n');
+    this.queue('      --really-is-jsx    Forces jsxhint to treat all files as jsx-files in\n' +
+               '                         case of errors during code-transformation.\n');
   });
   jshint_proc.stderr.pipe(ts).pipe(process.stderr);
 }
