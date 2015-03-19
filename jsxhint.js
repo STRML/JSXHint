@@ -41,7 +41,12 @@ function transformJSX(fileStream, fileName, opts, cb){
     if (opts['--babel'] || opts['--babel-experimental']) {
       return babel.transform(source, {experimental: opts['--babel-experimental'] || false}).code;
     } else {
-      return react.transform(source, {harmony: opts['--harmony'], stripTypes: true});
+      return react.transform(source, {
+        harmony: opts['--harmony'],
+        stripTypes: true,
+        nonStrictEs6module: opts['--non-strict-es6module'] || false,
+        es6module: opts['--es6module'] || false
+      });
     }
   }
 
