@@ -18,5 +18,6 @@
   "strict": true,
   "globals": {
     "define": true
-  }
+  },
+  "predef": [ "-Promise" ]
 }
