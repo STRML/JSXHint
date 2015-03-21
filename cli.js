@@ -168,7 +168,11 @@ try {
         opts.useStdin = false;
 
         if (err) {
-          opts.reporter([err], {}, opts);
+          if (!err.error) {
+            console.error("Runtime error:", err.stack);
+          } else {
+            opts.reporter([err], {}, opts);
+          }
           return process.exit(1);
         }
 

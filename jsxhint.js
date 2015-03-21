@@ -131,7 +131,7 @@ function transformStream(fileStream, jsxhintOpts, jshintOpts, cb){
 
   return transformJSX(fileStream, fileName, jsxhintOpts)
   .then(function(contents){
-    var tempFileName = createTempFile(path.join(process.cwd(), fileName), contents);
+    var tempFileName = utils.createTempFile(path.join(process.cwd(), fileName), contents);
     var out = {};
     out[tempFileName] = fileName;
     return out;
