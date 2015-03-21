@@ -1,7 +1,7 @@
 /* @flow */
 
 var myFunction = function(text: string, length: number): string {
-  return string.substr(0, length);
+  return text.substr(0, length);
 }
 
 module.exports = myFunction;

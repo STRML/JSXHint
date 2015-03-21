@@ -6,7 +6,7 @@ var jsxhint = require('../jsxhint');
 var child_process = require('child_process');
 
 // Util
-function drain_stream(stream, cb){
+function drainStream(stream, cb){
   var buf = '';
   stream.on('data', function(chunk){
     buf += chunk;
@@ -19,13 +19,19 @@ function drain_stream(stream, cb){
   });
 }
 
-test('Strip flow types', function(t){
-  t.plan(2);
-  jsxhint.transformJSX('./fixtures/test_flow.js', {}, function(err, data){
-    t.ifError(err);
-    t.equal(data.match(/text: string/), null, 'Flow types were not properly stripped.');
-  });
-});
+function forkAndDrain(cmd, args, cb) {
+  if (typeof args === 'string') args = [args];
+  var proc = child_process.fork(cmd, args, {silent: true});
+  drainStream(proc.stdout, cb);
+}
+
+function runJSXHint(args, cb) {
+  forkAndDrain('../cli', args, cb);
+}
+
+function runJSHint(args, cb) {
+  forkAndDrain('../node_modules/jshint/bin/jshint', args, cb);
+}
 
 test('Convert JSX to JS', function(t){
   t.plan(28);
@@ -74,38 +80,32 @@ test('Convert JSX to JS', function(t){
     t.equal(data.match(/class/), null, 'JS was not properly converted. (Using --harmony)');
   });
 
-  var jsxhint_proc = child_process.fork('../cli', ['fixtures/test_es6module.jsx'], {silent: true});
-  drain_stream(jsxhint_proc.stdout, function(err, jsxhintOut){
+  runJSXHint('fixtures/test_es6module.jsx', function(err, jsxhintOut) {
     t.ifError(err);
     t.ok(jsxhintOut.length > 0, 'JSXHint should fail using esprima parser.');
   });
 
-  jsxhint_proc = child_process.fork('../cli', ['--babel', 'fixtures/test_es6module.jsx'], {silent: true});
-  drain_stream(jsxhint_proc.stdout, function(err, jsxhintOut){
+  runJSXHint(['--babel', 'fixtures/test_es6module.jsx'], function(err, jsxhintOut) {
     t.ifError(err);
     t.equal(jsxhintOut, '',
       'JSXHint should succeed using acorn parser.');
   });
 
-  jsxhint_proc = child_process.fork('../cli', ['fixtures/test_es7exponentiation.jsx'], {silent: true});
-  drain_stream(jsxhint_proc.stdout, function(err, jsxhintOut){
+  runJSXHint('fixtures/test_es7exponentiation.jsx', function(err, jsxhintOut) {
     t.ifError(err);
     t.ok(jsxhintOut.length > 0, 'JSXHint should fail using esprima parser.');
   });
 
-  jsxhint_proc = child_process.fork('../cli', ['--babel', 'fixtures/test_es7exponentiation.jsx'], {silent: true});
-  drain_stream(jsxhint_proc.stdout, function(err, jsxhintOut){
+  runJSXHint(['--babel', 'fixtures/test_es7exponentiation.jsx'], function(err, jsxhintOut) {
     t.ifError(err);
-    t.ok(jsxhintOut.length > 0,
-    'JSXHint should fail using acorn parser.');
+    t.ok(jsxhintOut.length > 0, 'JSXHint should fail using acorn parser.');
   });
 
-  jsxhint_proc = child_process.fork('../cli', ['--babel-experimental', 'fixtures/test_es7exponentiation.jsx'], {silent: true});
-  drain_stream(jsxhint_proc.stdout, function(err, jsxhintOut){
+  runJSXHint(['--babel-experimental', 'fixtures/test_es7exponentiation.jsx'], function(err, jsxhintOut) {
     t.ifError(err);
     t.equal(jsxhintOut, '',
       'JSXHint should succeed using acorn parser with experimental support for ES7.');
-    });
+  });
 });
 
 test('Test stream input into transformJSX', function(t){
@@ -135,21 +135,19 @@ test('Test stream input into transformJSX', function(t){
 
 test('Error output should match jshint', function(t){
   t.plan(6);
-  var jshint_proc = child_process.fork('../node_modules/jshint/bin/jshint', ['fixtures/jshint_parity.js'], {silent: true});
-  var jsxhint_proc = child_process.fork('../cli', ['fixtures/jshint_parity.js'], {silent: true});
+  var file = 'fixtures/jshint_parity.js';
 
-  drain_stream(jshint_proc.stdout, function(err, jshintOut){
+  runJSHint(file, function(err, jshintOut){
     t.ifError(err);
-    drain_stream(jsxhint_proc.stdout, function(err, jsxhintOut){
+    runJSXHint(file, function(err, jsxhintOut){
       t.ifError(err);
       t.equal(jshintOut, jsxhintOut, "JSHint output formatting should match JSXHint output.");
     });
   });
 
-  jsxhint_proc = child_process.fork('../cli', ['--babel', 'fixtures/jshint_parity.js'], {silent: true});
-  drain_stream(jshint_proc.stdout, function(err, jshintOut){
+  runJSHint(file, function(err, jshintOut){
     t.ifError(err);
-    drain_stream(jsxhint_proc.stdout, function(err, jsxhintOut){
+    runJSXHint(['--babel', file], function(err, jsxhintOut){
       t.ifError(err);
       t.equal(jshintOut, jsxhintOut, "JSHint output formatting should match JSXHint output. (Using --babel)");
     });
@@ -160,16 +158,13 @@ test('Error output should match jshint', function(t){
 // Thanks @caseywebdev
 test('JSX transpiler error should look like JSHint output, instead of crashing', function(t){
   t.plan(4);
-  var jsxhint_proc = child_process.fork('../cli', ['fixtures/test_malformed.jsx'], {silent: true});
-
-  drain_stream(jsxhint_proc.stdout, function(err, jsxhintOut){
+  runJSXHint('fixtures/test_malformed.jsx', function(err, jsxhintOut){
     t.ifError(err);
     t.equal(jsxhintOut, 'fixtures/test_malformed.jsx: line 7, col 16, Unexpected token ;\n\n1 error\n',
       'JSXHint output should display the transplier error through the JSHint reporter.');
   });
 
-  jsxhint_proc = child_process.fork('../cli', ['--babel', 'fixtures/test_malformed.jsx'], {silent: true});
-  drain_stream(jsxhint_proc.stdout, function(err, jsxhintOut){
+  runJSXHint(['--babel', 'fixtures/test_malformed.jsx'], function(err, jsxhintOut){
     t.ifError(err);
     t.equal(jsxhintOut, 'fixtures/test_malformed.jsx: line 7, col 15, Unexpected token\n\n1 error\n',
       'JSXHint output should display the transplier error through the JSHint reporter. (Using --babel)');
@@ -178,18 +173,34 @@ test('JSX transpiler error should look like JSHint output, instead of crashing',
 
 test('JSX transpiler error should look like JSHint output', function(t){
   t.plan(4);
-  var jsxhint_proc = child_process.fork('../cli', ['fixtures/test_malformed.jsx'], {silent: true});
 
-  drain_stream(jsxhint_proc.stdout, function(err, jsxhintOut){
+  runJSXHint(['fixtures/test_malformed.jsx'], function(err, jsxhintOut){
     t.ifError(err);
     t.equal(jsxhintOut, 'fixtures/test_malformed.jsx: line 7, col 16, Unexpected token ;\n\n1 error\n',
       'JSXHint output should display the transplier error through the JSHint reporter.');
   });
 
-  jsxhint_proc = child_process.fork('../cli', ['--babel', 'fixtures/test_malformed.jsx'], {silent: true});
-  drain_stream(jsxhint_proc.stdout, function(err, jsxhintOut){
+  runJSXHint(['--babel', 'fixtures/test_malformed.jsx'], function(err, jsxhintOut){
     t.ifError(err);
     t.equal(jsxhintOut, 'fixtures/test_malformed.jsx: line 7, col 15, Unexpected token\n\n1 error\n',
       'JSXHint output should display the transplier error through the JSHint reporter. (Using --babel)');
+  });
+});
+
+test('Strip flow types', function(t){
+  t.plan(2);
+  jsxhint.transformJSX('./fixtures/test_flow.js', {}, function(err, data){
+    t.ifError(err);
+    t.equal(data.match(/text: string/), null, 'Flow types were not properly stripped.');
+  });
+});
+
+test('overrides', function(t) {
+  t.plan(2);
+  // Normally this would complain about missing 'use strict'
+  runJSXHint(['fixtures/test_overrides.js'], function(err, jsxhintOut){
+    t.ifError(err);
+    t.equal(jsxhintOut, '',
+      'use_strict override should squelch the strict error in test_overrides.js.');
   });
 });

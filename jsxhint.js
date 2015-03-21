@@ -10,7 +10,7 @@
 
 'use strict';
 
-var fs = require('graceful-fs');
+var fs = require('fs-extra');
 var path = require('path');
 
 var react = require('react-tools');
@@ -21,7 +21,6 @@ try {
 }
 var async = require('async');
 var path = require('path');
-var mkdirp = require('mkdirp');
 var debug = require('debug')('jsxhint');
 
 // Check map for copied support files (package.json, .jshintrc) for a speedup.
@@ -69,7 +68,7 @@ function transformJSX(fileStream, fileName, opts, cb){
     }
   }
 
-  function processFile(){
+  function processFile(source){
     var hasExtension = /\.jsx$/.exec(fileName) || fileName === "stdin";
     var err;
     try {
@@ -90,9 +89,9 @@ function transformJSX(fileStream, fileName, opts, cb){
 
   // Allow omitting filename
   if (typeof fileName === "object"){
-    cb = arguments[2];
-    opts = arguments[1];
-    fileName = typeof fileStream === "string" ? fileStream : 'stdin';
+    cb = opts;
+    opts = fileName;
+    fileName = fileStream;
   }
 
   if (!babel && (opts['--babel'] || opts['--babel-experimental'])) {
@@ -104,13 +103,27 @@ function transformJSX(fileStream, fileName, opts, cb){
     fileStream = fs.createReadStream(fileStream, {encoding: "utf8"});
   }
 
+  drainStream(fileStream, function(err, source) {
+    if (err) return cb(err);
+    processFile(source);
+  });
+}
+
+/**
+ * Drain a readstream into a string.
+ * @param  {ReadableStream}   stream Readable stream.
+ * @param  {Function} cb     Callback.
+ */
+function drainStream(stream, cb) {
   // Drain stream
   var source = '';
-  fileStream.on('data', function(chunk){
+  stream.on('data', function(chunk){
     source += chunk;
   });
-  fileStream.on('end', processFile);
-  fileStream.on('error', cb);
+  stream.on('end', function() {
+    cb(null, source);
+  });
+  stream.on('error', cb);
 }
 
 /**
@@ -125,30 +138,54 @@ function getCleanAbsolutePath(fileName) {
 }
 
 /**
- * Find a config file, searching up from dir, and copy it to the tmpdir. The
+ * As of JSHint 2.5.0 there is a new jshintrc option, overrides. This lets you set glob patterns with separate
+ * rules. It's super useful, but it uses minimatch internally and doesn't match our temp files correctly.
+ * This function modifies the input patterns so they'll work right on our temp dirs.
+ * @param  {Object} jshintrc .jshintrc contents.
+ * @return {Object}          Modified .jshintrc contents.
+ */
+function ensureJshintrcOverrides(jshintrc) {
+  if (!jshintrc.overrides) return jshintrc;
+  var base = path.join(exports.tmpdir, process.cwd());
+  jshintrc.overrides = Object.keys(jshintrc.overrides).reduce(function(memo, key) {
+    memo[path.join(base, key)] = jshintrc.overrides[key];
+    return memo;
+  }, {});
+  return jshintrc;
+}
+
+/**
+ * Find a config file, searching up from dir to the root, and copy it to the tmpdir. The
  * JSHint CLI uses these to determine settings.
  * We attempt to preserve the original folder structure inside the tmpdir
  * so that we have no unexpected configuration file priority.
- * @param  {String} dir Path
+ * @param  {String} dir Basename
+ * @param  {String} file Filename.
  */
-function copyConfig(dir, file, cb){
+function copyConfig(dir, file){
   var filePath = path.resolve(dir, file);
-  if (checkedSupportFiles[filePath]) return cb();
+  if (checkedSupportFiles[filePath]) return;
+  // Indicate that this is copied already to prevent unnecessary file operations.
   checkedSupportFiles[filePath] = true;
 
   if (fs.existsSync(filePath)) {
     var destination = path.join(exports.tmpdir, getCleanAbsolutePath(filePath));
-    var rs = fs.createReadStream(filePath);
-    var ws = fs.createWriteStream(destination);
-    debug("Copying support file from %s to temp directory.", filePath);
-    ws.on('close', cb);
-    // Indicate that this is copied already to prevent unnecessary file operations.
-    return rs.pipe(ws);
+    debug("Copying support file from %s to temp directory at %s.", filePath, destination);
+    if (file === '.jshintrc') {
+      var jshintrc = fs.readJSONSync(filePath);
+      fs.writeJSONSync(destination, ensureJshintrcOverrides(jshintrc));
+    } else {
+      fs.copySync(filePath, destination);
+    }
+  }
+  // Not found, keep looking up the root.
+  else {
+    var parent = path.resolve(dir, '..');
+    // Return null at the root, which is also when dir and its parent are the same.
+    if (dir === parent) return;
+    return copyConfig(parent, file);
   }
 
-  // Return null at the root. This is the case when dir and its parent are the same.
-  var parent = path.resolve(dir, '..');
-  return dir === parent ? cb() : copyConfig(parent, file, cb);
 }
 
 /**
@@ -156,22 +193,21 @@ function copyConfig(dir, file, cb){
  * @private
  * @param  {String}   fileName File name.
  * @param  {String}   contents File contents.
- * @param  {Function} cb       Callback.
  */
-function createTempFile(fileName, contents, cb){
+function createTempFile(fileName, contents){
   fileName = getCleanAbsolutePath(fileName);
-  var file = path.join(exports.tmpdir, fileName);
-  mkdirp(path.dirname(file), function(){
-    var dir = path.dirname(fileName);
-    // We need to write the file's contents to disk, but also grab
-    // its associated .jshintrc and package.json so that jshint can lint it
-    // with the proper settings.
-    async.parallel([
-      function(cb){ fs.createWriteStream(file).end(contents, cb); },
-      async.apply(copyConfig, dir, '.jshintrc'),
-      async.apply(copyConfig, dir, 'package.json')
-    ], function(){ cb(null, file); });
-  });
+  var fileTempDestination = path.join(exports.tmpdir, fileName);
+
+  // Write the file to the temp directory.
+  // outputFile is from fs-extra and will mkdirp() automatically.
+  fs.outputFileSync(fileTempDestination, contents);
+
+  // For every file, we need to go up the path to find .jshintrc and package.json files, since
+  // they can modify the lint.
+  var dir = path.dirname(fileName);
+  copyConfig(dir, '.jshintrc');
+  copyConfig(dir, 'package.json');
+  return fileTempDestination;
 }
 
 /**
@@ -180,12 +216,11 @@ function createTempFile(fileName, contents, cb){
  * @private
  * @param  {Array}   fileNames    File names.
  * @param  {Array}   fileContents File contents.
- * @param  {Function} cb          Callback.
  */
-function createTempFiles(fileNames, fileContents, cb){
-  async.map(fileNames, function(fileName, cb){
-    createTempFile(fileName, fileContents[fileNames.indexOf(fileName)], cb);
-  }, cb);
+function createTempFiles(fileNames, fileContents){
+  return fileNames.map(function(fileName) {
+    return createTempFile(fileName, fileContents[fileNames.indexOf(fileName)]);
+  });
 }
 
 /**
@@ -194,31 +229,31 @@ function createTempFiles(fileNames, fileContents, cb){
  * {tempFile: originalFileName}
  *
  * @param  {Array}    files File paths to transform.
- * @param  {Object}   opts  Options.
+ * @param  {Object}   jsxhintOpts        Options for JSXHint.
+ * @param  {Object}   jshintOpts         Options for JSHint.
  * @param  {Function} cb    Callback.
  */
-function transformFiles(files, opts, cb){
+function transformFiles(files, jsxhintOpts, jshintOpts, cb){
   async.map(files, function(fileStream, fileName, cb){
     if (arguments.length === 2) {
       cb = arguments[1];
       fileName = arguments[0];
-      return transformJSX(fileName, opts, cb);
+      return transformJSX(fileName, jsxhintOpts, cb);
     } else {
-      return transformJSX(fileStream, fileName, opts, cb);
+      return transformJSX(fileStream, fileName, jsxhintOpts, cb);
     }
   }, function(err, fileContents){
     if(err) return cb(err);
     debug("Successfully transformed %d files to JSX.", files.length);
-    createTempFiles(files, fileContents, function(err, tempFileNames){
-      if(err) return cb(err);
-      debug("Moved %d files to temp directory at %s.", files.length, exports.tmpdir);
-      // Create map of temp file names to original file names
-      var fileNameMap = {};
-      files.forEach(function(fileName, index){
-        fileNameMap[tempFileNames[index]] = fileName;
-      });
-      cb(null, fileNameMap);
+
+    var tempFileNames = createTempFiles(files, fileContents);
+    debug("Moved %d files to temp directory at %s.", files.length, exports.tmpdir);
+    // Create map of temp file names to original file names
+    var fileNameMap = {};
+    files.forEach(function(fileName, index){
+      fileNameMap[tempFileNames[index]] = fileName;
     });
+    cb(null, fileNameMap);
   });
 }
 
@@ -230,38 +265,24 @@ function transformFiles(files, opts, cb){
  * we instead just write to a temp file and load it into JSHint.
  *
  * @param  {ReadableStream}   fileStream Readable stream containing data to transform.
- * @param  {Object}   opts               Options.
+ * @param  {Object}   jsxhintOpts        Options for JSXHint.
+ * @param  {Object}   jshintOpts         Options for JSHint.
  * @param  {Function} cb                 Callback.
  */
-function transformStream(fileStream, opts, cb){
-  transformJSX(fileStream, opts, function(err, contents){
-    if(err) return cb(err);
-    createTempFile(path.join(process.cwd(), 'stdin'), contents, function(noErr, tempFileName){
-      var out = {};
-      out[tempFileName] = 'stdin';
-      cb(null, out);
-    });
-  });
-}
+function transformStream(fileStream, jsxhintOpts, jshintOpts, cb){
+  // JSHint now supports a '--filename' option for stdin, allowing overrides to work properly.
+  var fileName = jshintOpts && jshintOpts.filename.replace(process.cwd(), '') || 'stdin';
 
-/**
- * Called directly from cli.
- * There are two ways files can be added; either they are specified on the cli
- * or they are entered via stdin.
- * If they are named from the cli, we need to treat them as globs.
- */
-function run(files, opts, cb){
-  if (Array.isArray(files)){
-    transformFiles(files, opts, cb);
-  } else if (files instanceof require('stream').Readable){
-    transformStream(files, opts, cb);
-  } else {
-    throw new Error("Invalid input.");
-  }
+  transformJSX(fileStream, fileName, jsxhintOpts, function(err, contents){
+    if(err) return cb(err);
+    var tempFileName = createTempFile(path.join(process.cwd(), fileName), contents);
+    var out = {};
+    out[tempFileName] = fileName;
+    cb(null, out);
+  });
 }
 
 exports.tmpdir = path.join(require('os').tmpdir(), 'jsxhint', String(process.pid));
 exports.transformJSX = transformJSX;
 exports.transformFiles = transformFiles;
 exports.transformStream = transformStream;
-exports.run = run;

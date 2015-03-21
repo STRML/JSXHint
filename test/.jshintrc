@@ -18,5 +18,10 @@
   "strict": true,
   "globals": {
     "define": true
+  },
+  "overrides": {
+    "fixtures/**/**_overrides.js": {
+      "strict": false
+    }
   }
 }

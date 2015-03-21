@@ -14,8 +14,9 @@ var jsxhint = require('./jsxhint');
 var jshintcli = require('jshint/src/cli');
 var fork = require('child_process').fork;
 var through = require('through');
-var rimraf = require('rimraf');
 var glob = require('glob-all');
+var fs = require('fs');
+var debug = require('debug')('jsxhint');
 
 // The jshint call will throw an error if it encounters an option that it does
 // not recognize. Therefore, we need to filter out jsxhint options before
@@ -100,9 +101,9 @@ function run(opts, cb){
     var files = jshintcli.gather(opts);
 
     if (opts.useStdin) {
-      jsxhint.transformStream(process.stdin, jsxhintOptions, cb);
+      jsxhint.transformStream(process.stdin, jsxhintOptions, opts, cb);
     } else {
-      jsxhint.transformFiles(files, jsxhintOptions, cb);
+      jsxhint.transformFiles(files, jsxhintOptions, opts, cb);
     }
   });
 }
@@ -131,7 +132,7 @@ function interceptReporter(reporter, filesMap){
  */
 function unlinkTemp(){
   try {
-    rimraf.sync(jsxhint.tmpdir);
+    fs.removeSync(jsxhint.tmpdir);
   } catch(e) {
     // ignore
   }
@@ -163,6 +164,7 @@ try {
         }
 
         opts.args = Object.keys(files);
+        debug("Running JSHint with options: %j", opts);
 
         // Weird sync/async function, jshint oddity
         var done = function(passed){
