@@ -20,6 +20,7 @@
     "define": true
   },
   "overrides": {
+    // Comments should be fine in this file
     "fixtures/**/**_overrides.js": {
       "strict": false
     }

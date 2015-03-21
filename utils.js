@@ -3,6 +3,7 @@
 var Promise = require('bluebird');
 var fs = require('fs-extra');
 var path = require('path');
+var jshintcli = require('jshint/src/cli');
 var debug = require('debug')('jsxhint');
 
 // Check map for copied support files (package.json, .jshintrc) for a speedup.
@@ -105,7 +106,7 @@ var utils = module.exports = {
       debug("Copying support file from %s to temp directory at %s.", filePath, destination);
       if (file === '.jshintrc') {
         try {
-          var jshintrc = fs.readJSONSync(filePath);
+          var jshintrc = jshintcli.loadConfig(filePath);
           fs.writeJSONSync(destination, utils.ensureJshintrcOverrides(jshintrc));
         } catch(e) {
           console.error('Unable to parse .jshintrc file at %s. It must be valid JSON. Error: %s', filePath, e.message);
