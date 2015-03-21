@@ -104,8 +104,13 @@ var utils = module.exports = {
       var destination = path.join(utils.tmpdir, utils.getCleanAbsolutePath(filePath));
       debug("Copying support file from %s to temp directory at %s.", filePath, destination);
       if (file === '.jshintrc') {
-        var jshintrc = fs.readJSONSync(filePath);
-        fs.writeJSONSync(destination, utils.ensureJshintrcOverrides(jshintrc));
+        try {
+          var jshintrc = fs.readJSONSync(filePath);
+          fs.writeJSONSync(destination, utils.ensureJshintrcOverrides(jshintrc));
+        } catch(e) {
+          console.error('Unable to parse .jshintrc file at %s. It must be valid JSON. Error: %s', filePath, e.message);
+          return;
+        }
       } else {
         fs.copySync(filePath, destination);
       }
