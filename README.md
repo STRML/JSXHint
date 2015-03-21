@@ -103,4 +103,6 @@ JSXHint Options:
                             Useful if you are using es7-async, etc.
       --harmony          Use react esprima with ES6 transformation support.
                          Useful if you are using both es6-class and react.
+      --es6module             Pass the --es6module flag to react tools.
+      --non-strict-es6module  Pass this flag to react tools.
 ```

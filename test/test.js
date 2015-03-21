@@ -195,6 +195,22 @@ test('Strip flow types', function(t){
   });
 });
 
+test('Strip flow types with modules', function(t){
+  t.plan(2);
+  jsxhint.transformJSX('./fixtures/test_flow_import.js', { '--es6module': true }, function(err, data){
+    t.ifError(err);
+    t.equal(data.match(/import/), null, 'Flow types were not properly stripped.\n' + data);
+  });
+});
+
+test('Strip flow types with non-strict modules', function(t){
+  t.plan(2);
+  jsxhint.transformJSX('./fixtures/test_flow_import.js', {'--non-strict-es6module': true}, function(err, data){
+    t.ifError(err);
+    t.equal(data.match(/import/), null, 'Flow types were not properly stripped.\n' + data);
+  });
+});
+
 test('overrides', function(t) {
   t.plan(2);
   // Normally this would complain about missing 'use strict'
