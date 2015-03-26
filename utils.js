@@ -5,6 +5,7 @@ var fs = require('fs-extra');
 var path = require('path');
 var jshintcli = require('jshint/src/cli');
 var debug = require('debug')('jsxhint');
+var os = require('os');
 
 // Check map for copied support files (package.json, .jshintrc) for a speedup.
 var checkedSupportFiles = {};
@@ -15,7 +16,7 @@ var utils = module.exports = {
    * Places all temp files here.
    * @type {String}
    */
-  tmpdir: path.join(require('os').tmpdir(), 'jsxhint', String(process.pid)),
+  tmpdir: path.join((os.tmpdir ? os.tmpdir() : os.tmpDir()), 'jsxhint', String(process.pid)),
 
   /**
    * Drain a readstream into a string.
