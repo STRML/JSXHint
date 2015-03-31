@@ -18,19 +18,24 @@ var glob = require('glob-all');
 var fs = require('fs');
 var debug = require('debug')('jsxhint');
 
+// Mapping from jsxhint options to:
+//  - false if no argument is expected.
+//  - true if an argument is expected.
+//  - array if one of an enumeration is expected.
 // The jshint call will throw an error if it encounters an option that it does
 // not recognize. Therefore, we need to filter out jsxhint options before
 // calling jshint. Because jsxhint is run in part of a callback of jshint after
 // this check, we need to store jsxhint options someplace globally so we can
 // access them inside the callback.
-var acceptedJSXHintOptions = [
-  '--jsx-only',
-  '--babel',
-  '--babel-experimental',
-  '--harmony',
-  '--es6module',
-  '--non-strict-es6module'
-];
+var acceptedJSXHintOptions = {
+  '--babel': false,
+  '--babel-experimental': false,
+  '--es6module': false,
+  '--harmony': false,
+  '--jsx-only': false,
+  '--non-strict-es6module': false,
+  '--transform-errors': ['always', 'jsx', 'never']
+};
 var jsxhintOptions = {};
 
 /**
@@ -57,6 +62,8 @@ function showHelp(){
                '                         Useful if you are using both es6-class and react.\n');
     this.queue('      --es6module             Pass the --es6module flag to react tools.\n');
     this.queue('      --non-strict-es6module  Pass this flag to react tools.\n');
+    this.queue('      --transform-errors STRING   Whether to fail on transform errors.\n' +
+               '                                  Valid: always, jsx, never (default: jsx)');
   });
   jshint_proc.stderr.pipe(ts).pipe(process.stderr);
 }
@@ -189,11 +196,24 @@ try {
       });
     };
 
-    var argv = process.argv.filter(function(value) {
-      if (acceptedJSXHintOptions.indexOf(value) > -1) {
+    var argv = process.argv.filter(function(value, ii, args) {
+      if (acceptedJSXHintOptions.hasOwnProperty(value)) {
+        var argValue = true;
+        var config = acceptedJSXHintOptions[value];
+        if (config) {
+          var nextValue = args[ii + 1];
+          if (!nextValue || nextValue.charAt(0) === '-') {
+            throw new Error('ERROR: ' + value + ' requires an argument.');
+          }
+          if (Array.isArray(config) && config.indexOf(nextValue) < 0) {
+            throw new Error('ERROR: ' + value + ' must be one of: ' + config.join(', '));
+          }
+          argValue = nextValue;
+        }
+
         // Store the jsxhint specific option globally so we can access it when
         // we run the transformation.
-        jsxhintOptions[value] = true;
+        jsxhintOptions[value] = argValue;
 
         // Need to filter out jsxhint specific options so jshint doesn't throw
         // an unknown option error.
