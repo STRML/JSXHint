@@ -58,10 +58,10 @@ function transformJSX(fileStream, fileName, opts, cb){
       try {
         return transformSource(source, opts);
       } catch(e) {
-        // Only throw an error if this was definitely a jsx file.
         // Seems that esprima has some problems with some js syntax.
-        if (hasExtension) {
-          console.error("Error while transforming jsx in file " + fileName + "\n", e.stack);
+        if (opts['--transform-errors'] === 'always' ||
+            (opts['--transform-errors'] !== 'never' && hasExtension)) {
+          console.error("Error while transforming file " + fileName + "\n", e.stack);
           throw utils.transformError(fileName, e, opts);
         }
       }
