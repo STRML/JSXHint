@@ -133,6 +133,11 @@ test('Test stream input into transformJSX', function(t){
   });
 });
 
+// test('Test input from stdin', function(t) {
+  // t.plan(2);
+  //
+// });
+
 test('Error output should match jshint', function(t){
   t.plan(6);
   var file = 'fixtures/jshint_parity.js';
@@ -171,19 +176,22 @@ test('JSX transpiler error should look like JSHint output, instead of crashing',
   });
 });
 
-test('JSX transpiler error should look like JSHint output', function(t){
+// https://github.com/STRML/JSXHint/pull/62
+// Thanks @yungsters
+test('JSX transpiler error should look like JSHint output, without .jsx extension and --transform-errors', function(t){
   t.plan(4);
-
-  runJSXHint(['fixtures/test_malformed.jsx'], function(err, jsxhintOut){
+  runJSXHint(['--transform-errors', 'always', 'fixtures/test_malformed.js'], function(err, jsxhintOut){
     t.ifError(err);
-    t.equal(jsxhintOut, 'fixtures/test_malformed.jsx: line 7, col 16, Unexpected token ;\n\n1 error\n',
-      'JSXHint output should display the transplier error through the JSHint reporter.');
+    t.equal(jsxhintOut, 'fixtures/test_malformed.js: line 9, col 16, Unexpected token ;\n\n1 error\n',
+      'JSXHint output should display the transplier error through the JSHint reporter, even without .jsx extension, ' +
+      'when using --transform-errors always.');
   });
 
-  runJSXHint(['--babel', 'fixtures/test_malformed.jsx'], function(err, jsxhintOut){
+  runJSXHint(['--babel', '--transform-errors', 'always', 'fixtures/test_malformed.js'], function(err, jsxhintOut){
     t.ifError(err);
-    t.equal(jsxhintOut, 'fixtures/test_malformed.jsx: line 7, col 15, Unexpected token\n\n1 error\n',
-      'JSXHint output should display the transplier error through the JSHint reporter. (Using --babel)');
+    t.equal(jsxhintOut, 'fixtures/test_malformed.js: line 9, col 15, Unexpected token\n\n1 error\n',
+      'JSXHint output should display the transplier error through the JSHint reporter, even without .jsx extension, ' +
+      'when using --transform-errors always. (Using --babel)');
   });
 });
 
