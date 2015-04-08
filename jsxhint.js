@@ -127,7 +127,7 @@ function transformFiles(files, jsxhintOpts, jshintOpts, cb){
  */
 function transformStream(fileStream, jsxhintOpts, jshintOpts, cb){
   // JSHint now supports a '--filename' option for stdin, allowing overrides to work properly.
-  var fileName = jshintOpts && jshintOpts.filename.replace(process.cwd(), '') || 'stdin';
+  var fileName = jshintOpts && jshintOptns.filename && jshintOpts.filename.replace(process.cwd(), '') || 'stdin';
 
   return transformJSX(fileStream, fileName, jsxhintOpts)
   .then(function(contents){
