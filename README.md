@@ -33,15 +33,18 @@ mistakes in your templates (such as undefined variables, syntax errors, and miss
 ##Examples
 
 ```
-# Lint entire project
-jsxhint src/**/*
+# Lint entire project. JSXHint will only lint .js and .jsx files.
+jsxhint .
+
+# Lint files in `src` folder only.
+jsxhint src
 
 # Lint Project using only `.jsx` extension for JSX.
 # Will lint .js files with jshint, .jsx files with jsxhint.
-jsxhint --jsx-only src/**/*
+jsxhint --jsx-only .
 
 # Basic globbing
-jsxhint -c ./other-directory/.jshintrc src/foo/*.jsx
+jsxhint --config ./other-directory/.jshintrc src/foo/*.jsx
 
 # Multiple patterns
 jsxhint 'jsx/**/*' '!scripts/**/*' 'scripts/outlier.jsx'
@@ -57,7 +60,7 @@ jsxhint --exclude excludeme.jsx src/foo/*.jsx
 
 # Lint project using babel (previously 6to5)
 # Note that you must explicitly install `babel` if you wish to use it.
-jsxhint --babel src/**/*
+jsxhint --babel src
 ```
 
 ##Installation
