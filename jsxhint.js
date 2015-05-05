@@ -16,7 +16,7 @@ var Promise = require('bluebird');
 var utils = require('./utils');
 var debug = require('debug')('jsxhint');
 
-var react = require('react-tools');
+var jstransform = require('jstransform/simple');
 try {
   var babel = require('babel');
 } catch(e) {
@@ -75,12 +75,13 @@ function transformSource(source, opts){
   if (opts['--babel'] || opts['--babel-experimental']) {
     return babel.transform(source, {experimental: opts['--babel-experimental'] || false}).code;
   } else {
-    return react.transform(source, {
+    return jstransform.transform(source, {
+      react: true,
       harmony: opts['--harmony'],
       stripTypes: true,
       nonStrictEs6module: opts['--non-strict-es6module'] || false,
       es6module: opts['--es6module'] || false
-    });
+    }).code;
   }
 }
 
