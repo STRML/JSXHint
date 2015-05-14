@@ -34,7 +34,7 @@ function runJSHint(args, cb) {
 }
 
 test('Convert JSX to JS', function(t){
-  t.plan(28);
+  t.plan(34);
   jsxhint.transformJSX('./fixtures/test_article_without_pragma.js', { '--jsx-only' : true }, function(err, data){
     t.ifError(err);
     t.equal(data.match(/React.DOM/), null, 'JS was converted but should not be.');
@@ -88,7 +88,29 @@ test('Convert JSX to JS', function(t){
   runJSXHint(['--babel', 'fixtures/test_es6module.jsx'], function(err, jsxhintOut) {
     t.ifError(err);
     t.equal(jsxhintOut, '',
-      'JSXHint should succeed using acorn parser.');
+      'JSXHint should succeed using babel parser.');
+  });
+
+  runJSXHint(['--babel-experimental', 'fixtures/test_es6module.jsx'], function(err, jsxhintOut) {
+    t.ifError(err);
+    t.equal(jsxhintOut, '',
+      'JSXHint should succeed using babel parser with experimental support.');
+  });
+
+  runJSXHint('fixtures/test_es7classproperties.jsx', function(err, jsxhintOut) {
+    t.ifError(err);
+    t.ok(jsxhintOut.length > 0, 'JSXHint should fail using esprima parser.');
+  });
+
+  runJSXHint(['--babel', 'fixtures/test_es7classproperties.jsx'], function(err, jsxhintOut) {
+    t.ifError(err);
+    t.ok(jsxhintOut.length > 0, 'JSXHint should fail using babel parser without experimental.');
+  });
+
+  runJSXHint(['--babel-experimental', 'fixtures/test_es7classproperties.jsx'], function(err, jsxhintOut) {
+    t.ifError(err);
+    t.equal(jsxhintOut, '',
+      'JSXHint should succeed using babel parser with experimental support for ES7.');
   });
 
   runJSXHint('fixtures/test_es7exponentiation.jsx', function(err, jsxhintOut) {
@@ -98,13 +120,8 @@ test('Convert JSX to JS', function(t){
 
   runJSXHint(['--babel', 'fixtures/test_es7exponentiation.jsx'], function(err, jsxhintOut) {
     t.ifError(err);
-    t.ok(jsxhintOut.length > 0, 'JSXHint should fail using acorn parser.');
-  });
-
-  runJSXHint(['--babel-experimental', 'fixtures/test_es7exponentiation.jsx'], function(err, jsxhintOut) {
-    t.ifError(err);
     t.equal(jsxhintOut, '',
-      'JSXHint should succeed using acorn parser with experimental support for ES7.');
+      'JSXHint should succeed using babel parser without experimental support for ES7.');
   });
 });
 
