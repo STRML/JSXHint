@@ -1,6 +1,6 @@
 {
   "name": "jsxhint",
-  "version": "0.15.0",
+  "version": "0.15.1",
   "description": "Wrapper for JSHint to allow hinting of JSX files",
   "main": "jsxhint.js",
   "bin": "./cli.js",
