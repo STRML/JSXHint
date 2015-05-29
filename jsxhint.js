@@ -73,7 +73,7 @@ function transformJSX(fileStream, fileName, opts, cb){
 
 function transformSource(source, opts){
   if (opts['--babel'] || opts['--babel-experimental']) {
-    return babel.transform(source, {stage: opts['--babel-experimental'] ? 0 : 2}).code;
+    return babel.transform(source, {stage: opts['--babel-experimental'] ? 0 : 2, retainLines: true}).code;
   } else {
     return jstransform.transform(source, {
       react: true,
