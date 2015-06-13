@@ -29,6 +29,7 @@ var debug = require('debug')('jsxhint');
 // access them inside the callback.
 var acceptedJSXHintOptions = {
   '--babel': false,
+  '--babel-disable-strict': false,
   '--babel-experimental': false,
   '--es6module': false,
   '--harmony': false,
@@ -56,6 +57,8 @@ function showHelp(){
     this.queue('      --babel            Use babel (6to5) instead of react esprima.\n' +
                '                         Useful if you are using es6-module, etc. You must \n' +
                '                         install the module `babel` manually with npm.\n');
+    this.queue('      --babel-disable-strict  Make babel don\'t automatically place a "use strict"\n' +
+               '                              directive at the top of a transpiled source.\n');
     this.queue('      --babel-experimental  Use babel with experimental support for ES7.\n' +
                '                            Useful if you are using es7-async, etc.\n');
     this.queue('      --harmony          Use react esprima with ES6 transformation support.\n' +
@@ -64,6 +67,8 @@ function showHelp(){
     this.queue('      --non-strict-es6module  Pass this flag to react tools.\n');
     this.queue('      --transform-errors STRING   Whether to fail on transform errors.\n' +
                '                                  Valid: always, jsx, never (default: jsx)');
+    // Terminate help with a newline
+    this.queue('\n');
   });
   jshint_proc.stderr.pipe(ts).pipe(process.stderr);
 }

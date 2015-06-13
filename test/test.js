@@ -245,3 +245,15 @@ test('overrides', function(t) {
       'use_strict override should squelch the strict error in test_overrides.js.');
   });
 });
+
+test('--babel-disable-strict option', function(t) {
+  t.plan(2);
+
+  runJSXHint(['--babel', 'fixtures/test_disable_strict.jsx'], function(err, jsxhintOut) {
+    t.equal(jsxhintOut, '');
+  });
+
+  runJSXHint(['--babel', '--babel-disable-strict', 'fixtures/test_disable_strict.jsx'], function(err, jsxhintOut) {
+    t.inequal(jsxhintOut, '');
+  });
+});
