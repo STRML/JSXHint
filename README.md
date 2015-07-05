@@ -1,5 +1,16 @@
 [![build status](https://secure.travis-ci.org/STRML/JSXHint.png)](http://travis-ci.org/STRML/JSXHint)
 
+## Deprecated
+
+JSXHint is, and always was, a bad hack to make JSX lintable in the early days of React. It will always be
+inferior to proper linters like [ESLint](http://eslint.org/) because it is not able to lint JSX or ES6 syntax,
+it instead compiles to ES5 then lints. You may get weird linter errors, especially with more involved 
+transforms.
+
+Don't use JSXHint anymore if you can switch to [ESLint](http://eslint.org/).
+
+------
+
 #JSXHint
 A wrapper around JSHint to allow linting of files containing JSX syntax.
 
