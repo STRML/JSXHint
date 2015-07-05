@@ -36,7 +36,7 @@
     "fs-extra": "^0.16.5",
     "glob-all": "^3.0.1",
     "jshint": "^2.6.0",
-    "jstransform": "^11.0.1",
+    "jstransform": "^11.0.2",
     "through": "~2.3.6"
   },
   "devDependencies": {
