@@ -14,7 +14,7 @@ Don't use JSXHint anymore if you can switch to [ESLint](http://eslint.org/).
 #JSXHint
 A wrapper around JSHint to allow linting of files containing JSX syntax.
 
-Accepts the same input and JSHint and emits the same output. Switches sent to jsxhint
+Accepts the same input as JSHint and emits the same output. Switches sent to jsxhint
 are forwarded on to jshint.
 
 Glob parsing, ignores, and jshintrc parsing are all performed by jshint.
