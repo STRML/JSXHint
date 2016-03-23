@@ -18,7 +18,7 @@ var debug = require('debug')('jsxhint');
 
 var jstransform = require('jstransform/simple');
 try {
-  var babel = require('babel');
+  var babel = require('babel-core');
 } catch(e) {
   // ignore
 }
@@ -41,7 +41,7 @@ function transformJSX(fileStream, fileName, opts, cb){
   }
 
   if (!babel && (opts['--babel'] || opts['--babel-experimental'])) {
-    throw new Error("Optional babel parser not installed. Please `npm install [-g] babel`.");
+    throw new Error("Optional babel parser not installed. Please `npm install [-g] babel-core`.");
   }
 
   // Allow passing strings into this method e.g. when using it as a lib
