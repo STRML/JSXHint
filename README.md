@@ -113,6 +113,8 @@ JSXHint Options:
       --babel            Use babel (6to5) instead of react esprima.
                          Useful if you are using es6-module, etc. You must
                          install the module `babel` manually with npm.
+      --babel-disable-strict  Make babel don't automatically place a "use strict"
+                              directive at the top of a transpiled source.
       --babel-experimental  Use babel with experimental support for ES7.
                             Useful if you are using es7-async, etc.
       --harmony          Use react esprima with ES6 transformation support.
