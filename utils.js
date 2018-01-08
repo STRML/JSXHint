@@ -16,7 +16,7 @@ var utils = module.exports = {
    * Places all temp files here.
    * @type {String}
    */
-  tmpdir: path.join((os.tmpDir || os.tmpdir)(), 'jsxhint', String(process.pid)),
+  tmpdir: path.join((os.tmpdir || os.tmpDir)(), 'jsxhint', String(process.pid)),
 
   /**
    * Drain a readstream into a string.
