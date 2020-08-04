@@ -11,7 +11,7 @@ Don't use JSXHint anymore if you can switch to [ESLint](http://eslint.org/).
 
 ------
 
-#JSXHint
+# JSXHint
 A wrapper around JSHint to allow linting of files containing JSX syntax.
 
 Accepts the same input as JSHint and emits the same output. Switches sent to jsxhint
@@ -21,7 +21,7 @@ Glob parsing, ignores, and jshintrc parsing are all performed by jshint.
 
 Automatically lints all files with the `.js` and `.jsx` extensions.
 
-##Rationale
+## Rationale
 
 This module is intended for use as part of
 [SublimeLinter-jsxhint](https://github.com/SublimeLinter/SublimeLinter-jsxhint),
@@ -41,7 +41,7 @@ mistakes in your templates (such as undefined variables, syntax errors, and miss
 
 `JSXHint` cli allows for pattern arrays via [glob-all](https://github.com/jpillora/node-glob-all)
 
-##Examples
+## Examples
 
 ```
 # Lint entire project. JSXHint will only lint .js and .jsx files.
@@ -74,10 +74,10 @@ jsxhint --exclude excludeme.jsx src/foo/*.jsx
 jsxhint --babel src
 ```
 
-##Installation
+## Installation
 `npm install -g jsxhint`
 
-##Usage
+## Usage
 
 ```
 Usage:
